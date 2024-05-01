@@ -39,6 +39,7 @@ evolution_path = ''
 model_path = ''
 
 #Global file-list arrays
+game = ''
 personal = []
 levelup = []
 evolution = []

@@ -166,6 +166,35 @@ def load_game_cfg(game_cfg_path):
         good_to_go_bool = True
 
 def add_new_forme_execute(base_form, existing_formes_array = [], start_location, new_forme_count, personal_source_index = base_form, levelup_source_index = base_form, evolution_source_index = base_form, model_source_index):
+
+#updated target Personal file with new Forme Count and First Forme Pointer
+def personal_file_update(target_index, new_forme_count, start_location):
+    #open target personal file
+    with open(file_namer(personal_path, target_index, personal_filename_length, extracted_extension), "r+b") as f:
+        with mmap.mmap(file_obj.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_map_temp:
+            personal_hex_map[0x20] = hex(new_forme_count)
+            personal_hex_map[0x1C], personal_hex_map[0x1D] = little_endian_chunks(start_location)
+
+
+def add_new_forme_execute(base_form, existing_formes_array = [], start_location, new_forme_count, model_source_index, personal_source_index = base_form, levelup_source_index = base_form, evolution_source_index = base_form):
+    
+    
+    #Part 1, Personal file, update existing Personal blocks with new forme count and pointer
+    personal_file_update(base_form, new_forme_count, start_location)
+    
+    for pokemon in existing_formes_array:
+        personal_file_update(pokemon, new_forme_count, start_location)
+        
+    #for Levelup, evo, and Personal, move existing formes if needed. We need to delete existing files if they are there, then copy them to the new location, then overwrite the old spot with zeroes
+    #offset starts from 0, which is the first forme that is at index start_location
+    for offset, pokemon in enumerate(existing_formes_array):
+    
+        #delete target spots if they exist (only happens if filling a spot cleared by moving something else)
+        silentremove(file_namer(personal_path, start_location + offset, personal_filename_length, extracted_extension))
+        silentremove(file_namer(evolution_path, start_location + offset, evolution_filename_length, extracted_extension))
+        silentremove(file_namer(levelup_path, start_location + offset, levelup_filename_length, extracted_extension))
+
+        #copy personal file to new location
         shutil.copy(file_namer(personal_path, pokemon, personal_filename_length, extracted_extension), file_namer(personal_path, start_location + offset, personal_filename_length, extracted_extension))
         
         #zero out old personal block

@@ -39,7 +39,6 @@ evolution_path = ''
 model_path = ''
 
 #Global file-list arrays
-generation = 0
 personal = []
 levelup = []
 evolution = []
@@ -137,7 +136,7 @@ def load_GARC(garc_path):
 
 def load_game_cfg(game_cfg_path):
     '''read all the lines
-    0 = generation
+    0 = game
     1 = Personal
     2 = Level
     3 = Evolution
@@ -145,9 +144,15 @@ def load_game_cfg(game_cfg_path):
     5 = Sprites_1
     6 = Sprites_2
     7 = portrait_1
-    8 = portrait_2'''
+    8 = portrait_2
+    9 = length of personal filename
+    10= length of levelup filename
+    11= length of evolution filename
+    12= length of model filename
+    '''
     
-    generation = cfg_array[0]
+    
+    game = cfg_array[0]
     personal_path = cfg_array[1]
     levelup_path = cfg_array[2]
     evolution_path = cfg_array[3]
@@ -156,6 +161,11 @@ def load_game_cfg(game_cfg_path):
     #evolution = cfg_array[6]
     #evolution = cfg_array[7]
     #evolution = cfg_array[8]
+    personal_filename_length = cfg_array[9]
+    levelup_filename_length = cfg_array[10]
+    evolution_filename_length = cfg_array[11]
+    model_filename_length = cfg_array[12]
+    extracted_extension = '.bin'
     
     personal = load_GARC(personal_path)
     levelup = load_GARC(levelup_path)
@@ -165,7 +175,6 @@ def load_game_cfg(game_cfg_path):
     if(len(personal) - 2 == len(levelup) - 1 == len(evolution) - 1 and len(model) >= len(personal)*9):
         good_to_go_bool = True
 
-def add_new_forme_execute(base_form, existing_formes_array = [], start_location, new_forme_count, personal_source_index = base_form, levelup_source_index = base_form, evolution_source_index = base_form, model_source_index):
 
 #updated target Personal file with new Forme Count and First Forme Pointer
 def personal_file_update(target_index, new_forme_count, start_location):

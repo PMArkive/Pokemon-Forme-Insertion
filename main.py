@@ -38,8 +38,9 @@ levelup_path = ''
 evolution_path = ''
 model_path = ''
 
-#Global file-list arrays
+#Global file/game variables
 game = ''
+max_species_index = 0
 personal = []
 levelup = []
 evolution = []
@@ -186,11 +187,11 @@ def personal_file_update(target_index, new_forme_count, start_location):
             personal_hex_map[0x1C], personal_hex_map[0x1D] = little_endian_chunks(start_location)
 
 
-def add_new_forme_execute(base_form, existing_formes_array = [], start_location, new_forme_count, model_source_index, personal_source_index = base_form, levelup_source_index = base_form, evolution_source_index = base_form):
+def add_new_forme_execute(base_form_index, existing_formes_array = [], start_location, new_forme_count, model_source_index, personal_source_index = base_form_index, levelup_source_index = base_form_index, evolution_source_index = base_form_index):
     
     
     #Part 1, Personal file, update existing Personal blocks with new forme count and pointer
-    personal_file_update(base_form, new_forme_count, start_location)
+    personal_file_update(base_form_index, new_forme_count, start_location)
     
     for pokemon in existing_formes_array:
         personal_file_update(pokemon, new_forme_count, start_location)
@@ -274,37 +275,104 @@ def add_new_forme_execute(base_form, existing_formes_array = [], start_location,
     
     with open(file_namer(model_path, 0, model_filename_length, extracted_extension), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
+            model_hex_map.flush
             #first need to go to the four bytes for that *species*, which start at (index - 1)*4
             #the fourth byte, (index - 1)*4 + 3, is 0x1 when no formes, 0x3 when only alternate-gender formes, 0x7 when both
             #the third byte is how many models that species has.
             #The first and second bytes are a 2-byte little endian that is the *total number of models up to but not including the first model for that species*. So Bulby is 00 00 01 01 (no models before it), Venusaur is 02 00 03 07 (2 models before it, 3 models for Venusaur (male, female, and Mega), and has both gendered and non-gendered models
             
-            4*(base_form - 1) + 2
+            #number of models on pokemon getting new forms + total number of models of all prior Pokemon
+            total_previous_models = model_hex_map[4*(base_form_index - 1) + 2] + model_hex_map[4*(base_form_index - 1) + 1]*256 + model_hex_map[4*(base_form_index - 1) + 0]
             
+            
+            
+            #had to wait to open the file and grab the above so we could see where to insert the file
             
             #this is the model we're copying
             model_start_file = 0
-            #this is where we have to insert those copies
+            #this is where we have to insert those copies after
             model_dest_file = 0
             #this is how many of those files there are per new forme
             model_file_count = 0
+            
             if(game == 'XY'):
                 model_start_file = 8*(model_source_index)+4
-                model_dest_file = base_form
+                model_dest_file = 8*total_previous_models+4+7
                 model_file_count = 8
             elif(game == "ORAS"):
                 #Need someone to check
                 model_start_file = 8*(model_source_index)+4
+                model_dest_file = 8*total_previous_models+4+7
                 model_file_count = 8
             #assume USUM
             else:
                 model_start_file = 9*(model_source_index)+1
+                model_dest_file = 9*total_previous_models+1+8
                 model_file_count = 9
             
-            #copies each of the source model/texture/animation files from A.bin to <last file in source>_<enumeration of new formes>_<file number in sequence>
+
+            #shift the later model files forward
+            for file_number, file in reversed(list(enumerate(model)))
+                
+                #if we've hit the *last* file of the Pokemon we're adding forme(s) too, stop this
+                if(file_number == model_dest_file):
+                    break
+                
+                #move file (# files per model)*(# new formes added) numbers forward
+                os.rename(file_namer(model_path, file_number, model_filename_length, extracted_extension), file_namer(model_path, file_number + model_file_count*new_forme_count, model_filename_length, extracted_extension))
+            
+            
+            #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
             for x in range(0, new_forme_count):
                 for y in range(0, model_file_count):
-                    shutil.copy(file_namer(model_path, model_start_file + y, model_filename_length, extracted_extension), os.path.join(model_path, str(model_start_file + model_file_count).zfill(model_filename_length), "_", str(x).zfill(2), "_", y, '.bin'))
+                    shutil.copy(file_namer(model_path, model_start_file + y, model_filename_length, extracted_extension), file_namer(model_path, model_dest_file + x + y + 1, model_filename_length, extracted_extension))
             
-    
-    
+            #set the non-gendered form bit to true if not so set
+            if(model_hex_map[4*(base_form_index - 1) + 3] < 0x05):
+                model_hex_map[4*(base_form_index - 1) + 3] += 0x04
+            
+            
+            #update the number of models for the species
+            model_hex_map[4*(base_form_index - 1) + 2] += new_forme_count
+            
+            
+            #update the "model count so far" value
+            #max_species_index + 1 because egg is last at position max_species_index (0 is Bulba, max_species_index - 1 is the last species in nat dex)
+            #because for loop, would need to subtract 1 (0,max_species_index - 1) normally, but +1 for egg
+            
+            #grab model count so far
+            model_count = 0
+            
+            #update number of models
+            #start from the beginning just in case something erred at another point
+            for index in range(0, max_species_index):
+                model_hex_map[4*index + 0], model_hex_map[4*index + 1] = little_endian_chunks(model_count)
+                model_count += model_hex_map[4*index + 2]
+             
+            #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
+            #This section starts at max_species_index*4
+            
+            
+            #number of bytes to move
+            #this is the length (in bytes) of the entire table, minus 4*(max_species_index+1) (to include the Egg), minus the number of models before the spot we're inserting into:
+            length_of_bytes_to_move = len(model_hex_map) - (max_species_index+1)*4 - total_previous_models*2
+            
+            #add 2*<number formes added> bytes to the model table
+            model_hex_map.resize(len(model_hex_map) + 2*new_forme_count)
+            
+            total_previous_models
+            
+            #move(dest, src, cont) - moves the cont bytes starting at src to dest (note destination is just source plus twice as many bytes as models inserted)
+            model_hex_map.move(max_species_index*4 + total_previous_models*2 + 2*new_forme_count, max_species_index*4 + total_previous_models*2, length_of_bytes_to_move)
+            
+            #set the bytes for the new models to 0x00
+            for offset in range(0, 2*new_forme_count)
+                model_hex_map[max_species_index*4 + total_previous_models*2 + offset] = 0x00
+            
+            #write model file back to discard
+            model_hex_map.flush
+            
+            
+            
+            
+ 

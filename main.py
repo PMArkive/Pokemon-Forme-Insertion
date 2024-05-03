@@ -10,58 +10,62 @@ from file_handling import *
 from forme_importation_actual import *
 
 
-def pre_check():
+def pre_check(poke_edit_data):
     
-    base_form_index = base_species_list.index(base_species_entry.get())
-    new_forme_count = number_formes_entry.get()
+    base_form_index = int(poke_edit_data.base_species_list.index(base_species_entry.get()))
+    new_forme_count = int(number_formes_entry.get())
     
-    print(base_form_index, new_forme_count)
+    #print(base_form_index, new_forme_count)
 
     if(model_bool or model_entry.get() == ''):
         #this is not the correct value, that will be computed later based on model_bool passing
         model_source_index = base_form_index
     else:
-        model_source_index = model_source_list.index(model_entry.get())
+        model_source_index = poke_edit_data.model_source_list.index(model_entry.get())
     
     if(personal_bool or personal_entry.get() == ''):
         personal_source_index = base_form_index
     else:
-        personal_source_index = master_formes_list.index(personal_entry.get())
+        personal_source_index = poke_edit_data.master_formes_list.index(personal_entry.get())
     
     if(levelup_bool or levelup_entry.get() == ''):
         levelup_source_index = base_form_index
     else:
-        levelup_source_index = master_formes_list.index(levelup_entry.get())
+        levelup_source_index = poke_edit_data.master_formes_list.index(levelup_entry.get())
     
     if(evolution_bool or evolution_entry.get() == ''):
         evolution_source_index = base_form_index
     else:
-        evolution_source_index = master_formes_list.index(evolution_entry.get())
+        evolution_source_index = poke_edit_data.master_formes_list.index(evolution_entry.get())
     
-    if(not(base_form_index.is_integer())):
+    if(not(isinstance(base_form_index, int))):
         print("Species is not an integer!")
         return
-    elif(not(new_forme_count.is_integer())):
+    elif(not(isinstance(new_forme_count, int))):
         print("Formes to add is not an integer!")
         return
-    elif(not(model_source_index.is_integer())):
+    elif(not(isinstance(model_source_index, int))):
         print("Model source is not an integer!")
         return
-    elif(not(personal_source_index.is_integer())):
+    elif(not(isinstance(personal_source_index, int))):
         print("Personal source is not an integer!")
         return
-    elif(not(levelup_source_index.is_integer())):
+    elif(not(isinstance(levelup_source_index, int))):
         print("Levelup source is not an integer!")
         return
-    elif(not(evolution_source_index.is_integer())):
+    elif(not(isinstance(evolution_source_index, int))):
         print("Evolution source is not an integer!")
         return
 
 
-    add_new_forme_prelim(base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, model_bool)
+    poke_edit_data= add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, model_bool)
+    
+    return(poke_edit_data)
 
 root = Tk()
 root.geometry('750x300')
+
+poke_edit_data = Pokedata()
 
 model_bool = BooleanVar()
 personal_bool = BooleanVar()
@@ -76,100 +80,124 @@ def update(input_list, input_listbox):
         input_listbox.insert(END, item)
 
 
-#not working
+#update "Select Species" based on double-clicking in list
 def fillout_base_species(e):
+    selection = poke_edit_data.current_base_species_list[base_species_listbox.curselection()[0]]
     base_species_entry.delete(0, END)
-    base_species_entry.insert(END, base_species_listbox.get(ACTIVE))
-
+    base_species_entry.insert(END, selection)
+    check_base_species(e)
 
 #update search list for base species
 def check_base_species(e):
     typed = base_species_entry.get()
-    global current_base_species_list
     if typed == '':
         #reset everything
-        data = base_species_list
+        data = poke_edit_data.base_species_list.copy()
     else:
         data = []
-        for item in current_base_species_list:
+        for item in poke_edit_data.current_base_species_list:
             if typed.lower() in item.lower():
                 data.append(item)
-    current_base_species_list = data
+    poke_edit_data.current_base_species_list = data
     update(data, base_species_listbox)
 
 
+#update "Custom Personal" based on double-clicking in list
+def fillout_personal(e):
+    selection = poke_edit_data.current_personal_list[personal_listbox.curselection()[0]]
+    personal_entry.delete(0, END)
+    personal_entry.insert(END, selection)
+    check_personal(e)
+    
 #update listbox for personal source
 def check_personal(e):
     typed = personal_entry.get()
-    global current_personal_list
     if typed == '':
         #reset everything
-        data = master_formes_list
+        data = poke_edit_data.master_formes_list.copy()
     else:
         data = []
-        for item in current_personal_list:
+        for item in poke_edit_data.current_personal_list:
             if typed.lower() in item.lower():
                 data.append(item)
-    current_personal_list = data
+    poke_edit_data.current_personal_list = data
     update(data, personal_listbox)
 
-
+#update "Custom Levelup" based on double-clicking in list
+def fillout_levelup(e):
+    selection = poke_edit_data.current_levelup_list[levelup_listbox.curselection()[0]]
+    levelup_entry.delete(0, END)
+    levelup_entry.insert(END, selection)
+    check_levelup(e)
+    
 #update listbox for levelup source
 def check_levelup(e):
     typed = levelup_entry.get()
-    global current_levelup_list
     if typed == '':
         #reset everything
-        data = master_formes_list
+        data = poke_edit_data.master_formes_list.copy()
     else:
         data = []
-        for item in current_levelup_list:
+        for item in poke_edit_data.current_levelup_list:
             if typed.lower() in item.lower():
                 data.append(item)
-    current_levelup_list = data
+    poke_edit_data.current_levelup_list = data
     update(data, levelup_listbox)
+
+#update "Custom Evolution" based on double-clicking in list
+def fillout_evolution(e):
+    selection = poke_edit_data.current_evolution_list[evolution_listbox.curselection()[0]]
+    evolution_entry.delete(0, END)
+    evolution_entry.insert(END, selection)
+    check_evolution(e)
 
 #update listbox for evolution source
 def check_evolution(e):
     typed = evolution_entry.get()
-    global current_evolution_list
     if typed == '':
         #reset everything
-        data = master_formes_list
+        data = poke_edit_data.master_formes_list.copy()
     else:
         data = []
-        for item in current_evolution_list:
+        for item in poke_edit_data.current_evolution_list:
             if typed.lower() in item.lower():
                 data.append(item)
-    current_evolution_list = data
+    poke_edit_data.current_evolution_list = data
     update(data, evolution_listbox)
+
+#update "Custom Model" based on double-clicking in list
+def fillout_model(e):
+    selection = poke_edit_data.current_model_source_list[model_listbox.curselection()[0]]
+    model_entry.delete(0, END)
+    model_entry.insert(END, selection)
+    check_model(e)
 
 #update listbox for model source
 def check_model(e):
     typed = model_entry.get()
-    global current_model_source_list
     if typed == '':
         #reset everything
-        data = model_source_list
+        data = poke_edit_data.model_source_list.copy()
     else:
         data = []
-        for item in current_model_source_list:
+        for item in poke_edit_data.current_model_source_list:
             if typed.lower() in item.lower():
                 data.append(item)
-    current_model_source_list = data
+    poke_edit_data.current_model_source_list = data
     update(data, model_listbox)
 
-
+def set_games_checklist(gameinput):
+    games_temp.set(gameinput)
 
 
 
 
 #load/save config
-cfg_load = Button(root, text = 'Load CFG', command = lambda: load_game_cfg(), height = 2, width = 12, pady = 5, padx = 7)
+cfg_load = Button(root, text = 'Load CFG', command = lambda: [load_game_cfg(poke_edit_data), update(poke_edit_data.base_species_list, base_species_listbox), update(poke_edit_data.master_formes_list, personal_listbox), update(poke_edit_data.master_formes_list, levelup_listbox), update(poke_edit_data.master_formes_list, evolution_listbox), update(poke_edit_data.model_source_list, model_listbox), set_games_checklist(poke_edit_data.game)], height = 2, width = 12, pady = 5, padx = 7)
 cfg_load.grid(row = 0, column = 0)
 
 
-cfg_save = Button(root, text = 'Save/Set CFG', command = lambda: save_game_cfg(), height = 2, width = 12, pady = 5, padx = 7)
+cfg_save = Button(root, text = 'Save CFG', command = lambda: save_game_cfg(poke_edit_data), height = 2, width = 12, pady = 5, padx = 7)
 cfg_save.grid(row = 1, column = 0)
 
 
@@ -177,25 +205,25 @@ cfg_save.grid(row = 1, column = 0)
 games = ["XY", "ORAS", "USUM"]
 
 games_temp = StringVar(root)
-games_temp.set(games[0])
+games_temp.set("Select Game")
 game_select = OptionMenu(root, games_temp, *games)
 game_select.grid(row = 0, column = 1)
 
 
 #load Model
-model_load = Button(root, text = 'Select Model Path', command = lambda: choose_GARC("Model", games_temp), height = 2, width = 15, pady = 5, padx = 7)
+model_load = Button(root, text = 'Select Model Path', command = lambda: [choose_GARC(poke_edit_data, "Model", games_temp.get()), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 15, pady = 5, padx = 7)
 model_load.grid(row = 0, column = 2)
 
 #load Personal
-personal_load = Button(root, text = 'Select Personal Path', command = lambda: choose_GARC("Personal", games_temp), height = 2, width = 15, pady = 5, padx = 7)
+personal_load = Button(root, text = 'Select Personal Path', command = lambda: [choose_GARC(poke_edit_data, "Personal", games_temp.get()), update(poke_edit_data.base_species_list, base_species_listbox), update(poke_edit_data.master_formes_list, personal_listbox), update(poke_edit_data.master_formes_list, levelup_listbox), update(poke_edit_data.master_formes_list, evolution_listbox), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 15, pady = 5, padx = 7)
 personal_load.grid(row = 0, column = 3)
 
 #load Levelup
-levelup_load = Button(root, text = 'Select Levelup Path', command = lambda: choose_GARC("Levelup", games_temp), height = 2, width = 15, pady = 5, padx = 7)
+levelup_load = Button(root, text = 'Select Levelup Path', command = lambda: choose_GARC(poke_edit_data, "Levelup", games_temp.get()), height = 2, width = 15, pady = 5, padx = 7)
 levelup_load.grid(row = 0, column = 4)
 
 #load Evolution
-evolution_load = Button(root, text = 'Select Evolution Path', command = lambda: choose_GARC("Evolution", games_temp), height = 2, width = 15, pady = 5, padx = 7)
+evolution_load = Button(root, text = 'Select Evolution Path', command = lambda: choose_GARC(poke_edit_data, "Evolution", games_temp.get()), height = 2, width = 15, pady = 5, padx = 7)
 evolution_load.grid(row = 0, column = 5)
 
 
@@ -210,9 +238,9 @@ base_species_entry.grid(row = 3, column = 0)
 base_species_listbox = Listbox(root, width = 15)
 base_species_listbox.grid(row = 4, column = 0)
 
-update(base_species_list, base_species_listbox)
+update(poke_edit_data.base_species_list, base_species_listbox)
 
-base_species_listbox.bind("<<ListBoxSelect>>", fillout_base_species)
+base_species_listbox.bind("<Double-1>", fillout_base_species)
 base_species_entry.bind("<KeyRelease>", check_base_species)
 
 
@@ -231,8 +259,9 @@ model_entry.grid(row = 3, column = 2)
 model_listbox = Listbox(root, width = 15)
 model_listbox.grid(row = 4, column = 2)
 
-update(model_source_list, model_listbox)
+update(poke_edit_data.model_source_list, model_listbox)
 
+model_listbox.bind("<Double-1>", fillout_model)
 model_entry.bind("<KeyRelease>", check_model)
 
 
@@ -251,9 +280,9 @@ personal_entry.grid(row = 3, column = 3)
 personal_listbox = Listbox(root, width = 15)
 personal_listbox.grid(row = 4, column = 3)
 
-update(master_formes_list, personal_listbox)
+update(poke_edit_data.master_formes_list, personal_listbox)
 
-
+personal_listbox.bind("<Double-1>", fillout_personal)
 personal_entry.bind("<KeyRelease>", check_personal)
 
 
@@ -272,9 +301,9 @@ levelup_entry.grid(row = 3, column = 4)
 levelup_listbox = Listbox(root, width = 15)
 levelup_listbox.grid(row = 4, column = 4)
 
-update(master_formes_list, levelup_listbox)
+update(poke_edit_data.master_formes_list, levelup_listbox)
 
-
+levelup_listbox.bind("<Double-1>", fillout_levelup)
 levelup_entry.bind("<KeyRelease>", check_levelup)
 
 #Evolution Selection
@@ -292,9 +321,9 @@ evolution_entry.grid(row = 3, column = 5)
 evolution_listbox = Listbox(root, width = 15)
 evolution_listbox.grid(row = 4, column = 5)
 
-update(master_formes_list, evolution_listbox)
+update(poke_edit_data.master_formes_list, evolution_listbox)
 
-
+evolution_listbox.bind("<Double-1>", fillout_evolution)
 evolution_entry.bind("<KeyRelease>", check_evolution)
 
 #Number of New Formes
@@ -308,8 +337,10 @@ number_formes_entry.grid(row = 3, column = 1)
 
 #Run
 
-execute_buttom = Button(root, text = 'Insert Forme(s)', command = lambda: pre_check(), height = 2, width = 15, pady = 5, padx = 7)
+execute_buttom = Button(root, text = 'Insert Forme(s)', command = lambda: pre_check(poke_edit_data), height = 2, width = 15, pady = 5, padx = 7)
 execute_buttom.grid(row = 4, column = 1)
+
+
 
 
 root.mainloop()

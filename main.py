@@ -202,7 +202,7 @@ cfg_save.grid(row = 1, column = 0)
 
 
 #select game
-games = ["XY", "ORAS", "USUM"]
+games = ["XY", "ORAS", "SM", "USUM"]
 
 games_temp = StringVar(root)
 games_temp.set("Select Game")

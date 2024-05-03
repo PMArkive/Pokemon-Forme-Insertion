@@ -148,6 +148,8 @@ def update_species_list(poke_edit_data):
     #set base species list based on which game we're dealing with
     if(poke_edit_data.game == "USUM"):
         poke_edit_data.base_species_list = usum_base_species_list.copy() 
+    if(poke_edit_data.game == "SM"):
+        poke_edit_data.base_species_list = sm_base_species_list.copy() 
     elif(poke_edit_data.game == "XY" or poke_edit_data.game == "ORAS"):
         poke_edit_data.base_species_list = vi_base_species_list.copy() 
     #first part of master formes list is just the base species list
@@ -228,6 +230,8 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
                     poke_edit_data.max_species_index = 721
                 case "ORAS":
                     poke_edit_data.max_species_index = 721
+                case "SM":
+                    poke_edit_data.max_species_index = 802
                 case "USUM":
                     poke_edit_data.max_species_index = 807
             match target:
@@ -278,6 +282,16 @@ def choose_GARC(poke_edit_data, target, gameassert):
                        targetpath = '191'
                    case "Evolution":
                        targetpath = '192'
+        case "SM":
+               match target:
+                   case "Model":
+                       targetpath = '093'
+                   case "Personal":
+                       targetpath = '017'
+                   case "Levelup":
+                       targetpath = '013'
+                   case "Evolution":
+                       targetpath = '014'
         case "USUM":
                match target:
                    case "Model":

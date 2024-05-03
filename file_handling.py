@@ -2,16 +2,18 @@ from re import A, M
 import shutil
 import os
 import mmap
+from string import printable
 import sys
 import errno
-from tkinter.filedialog import askdirectory, asksaveasfilename
+from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 from my_constants import *
+from numpy import *
 
 
 
 #streamline the file name-calling
 def file_namer(folder, index, length, extension):
-    return(os.path.join(folder, str(index).zfill(length), 'extension'))
+    return(os.path.join(folder, str(index).zfill(length)) + extension)
 
 #removes file, exception thrown if not exist
 def silentremove(filename):
@@ -23,28 +25,36 @@ def silentremove(filename):
 
 #check if file is zeroed out
 def file_is_zero(string):
-    with open(string) as file:
-        return not any(map(ord,file.read()))
+    with open(string) as f:
+        with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as personal_hex_map:
+            for x in personal_hex_map:
+                if(x != 0x0):
+                    return(False)
+    return(True)
 		
 #convert integer to little endian as long as two bytes at most
 def little_endian_chunks(big_input):
     small_byte = big_input%256
-    large_byte = (big_input - small_byte)/256
+    large_byte = int((big_input - small_byte)/256)
     
-    if(large_byte > 255 or not(small_byte.is_integer() and large_byte.is_integer())):
+    if(large_byte > 255):
         print(big_input, " is too big, little endian conversion error")
         return
     else:
-        return([hex(small_byte), hex(large_byte)])
+        return(small_byte, large_byte)
     
 
 #updated target Personal file with new Forme Count and First Forme Pointer
-def personal_file_update(target_index, new_forme_count, start_location):
+def personal_file_update(poke_edit_data, target_index, new_forme_count, start_location):
     #open target personal file
-    with open(file_namer(personal_path, target_index, personal_filename_length, extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.personal_path, target_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
-            personal_hex_map[0x20] = hex(new_forme_count)
+            personal_hex_map.flush()
+            print('about to write ', new_forme_count)
+            personal_hex_map[0x20] = new_forme_count
             personal_hex_map[0x1C], personal_hex_map[0x1D] = little_endian_chunks(start_location)
+            personal_hex_map.flush()
+    return(poke_edit_data)
             
 
 #rebuilds personal compilation file
@@ -100,73 +110,151 @@ def concatenate_bin_files(folder_path):
     os.rename('temp_personal_compilation.bin', os.path.join(folder_path, output_file))
     print('New compilation file placed in folder')
 
-def update_model_list():
-    #open model header
-    #same as below, reference game for species name, call them as <species> <number>
-base_species_list =  ["Bulby", "Ivy", "Venu"]
-master_formes_list = ["Bulby", "Ivy", "Venu"]
-model_source_list = ["Bulby", "Ivy", "Venu"]
+def update_model_list(poke_edit_data):
+    
+    #if we haven't loaded the Personal file yet, we will need to do all the rest later
+    if(len(poke_edit_data.personal) == 0):
+        poke_edit_data.run_model_later = True
+        print('Will load model list after loading Personal list')
+        return
+    else:
+        poke_edit_data.run_model_later = False
+        
+    poke_edit_data.model_source_list = []
+    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+        with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as model_hex_map:
+            #for base formes plus egg at poke_edit_data.max_species_index
+            for index in range(1, poke_edit_data.max_species_index + 2):
+                #number of model sets this species has
+                number_of_models = model_hex_map[(index - 1)*4 + 2]
+                #avoid issues of having 'egg' show up in main species list or having to have a second array for everything just with egg at the end
+                temp_name = 'Egg'
+                if(index != poke_edit_data.max_species_index+1):
+                    temp_name = poke_edit_data.base_species_list[index]
+                
+                #name each model as <Pokemon species> <number>, the base forme is named <Pokemon> 0 so that (in at least most cases) the model-number lines up with the forme-number (where there are multiple)
+                for distinct_models in range(0, number_of_models):
+                    poke_edit_data.model_source_list.append(temp_name + ' ' + str(distinct_models))
+    
+    #copy this into the current list to initialize properly (particularly when loading from cfg)
+    poke_edit_data.current_model_source_list = poke_edit_data.model_source_list.copy()
+    
+    return(poke_edit_data)
 
-def update_species_list():
+def update_species_list(poke_edit_data):
+    
+
+    print('Loading Species list')
+    #set base species list based on which game we're dealing with
+    if(poke_edit_data.game == "USUM"):
+        poke_edit_data.base_species_list = usum_base_species_list.copy() 
+    elif(poke_edit_data.game == "XY" or poke_edit_data.game == "ORAS"):
+        poke_edit_data.base_species_list = vi_base_species_list.copy() 
+    #first part of master formes list is just the base species list
+    poke_edit_data.master_formes_list = poke_edit_data.base_species_list.copy() 
+    
+    #add appropriate number of spots
+    #first find total number of files, then don't count the compilation file
+    if(os.path.getsize(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension)) > 84):
+        personal_index_count = len(poke_edit_data.personal) - 1
+    else:
+        personal_index_count = len(poke_edit_data.personal)
+    
+    print("Initializing Formes list")
+    #adds (total number of pokemon personal files) - (total number of base species) spots to the end of the array
+    for x in range(0, personal_index_count - poke_edit_data.max_species_index - 1):
+        poke_edit_data.master_formes_list.append('')
+    #print(poke_edit_data.max_species_index)
+    #print("length of formes array is ", len(poke_edit_data.master_formes_list))
     #open personal
     #open each file until max species, note pointer and forme count
     #reference hardcoded list to spit out <species> <number> like pk3ds
-    #just load the relevant file for the base_species list
+    #iterate through the personal files
+    print("Loading Forme list")     
+    for index, file in enumerate(poke_edit_data.personal):
+        #since we're filling up the poke_edit_data.master_formes_list by iterating through the base formes, we can stop when we finish the last base Pokemon
+        #poke_edit_data.max_species_index is here the first alt forme because off-by-1, so stop here
+        if(index == poke_edit_data.max_species_index + 1):
+            break
+        
+
+        with open(file_namer(poke_edit_data.personal_path, file, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+            with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as personal_hex_map:
+                #pull # of formes
+                forme_count = personal_hex_map[0x20]
+                forme_pointer = personal_hex_map[0x1C] + 256*personal_hex_map[0x1D]
+                #if more than 1 AND forme pointer not 0, need to update those names in the array
+                if(forme_count > 1 and forme_pointer != 0):
+                    #this is the internal index number of the first alt forme, less 1 because we're shifted over one
+                    
+                    #print(index, forme_count, forme_pointer)
+                    #first forme in forme count is the base, need to do 1 less than that. We call each forme <base species name> <alt forme count> (e.g. Mega Blastoise is "Blastoise 1")
+                    for x in range(0, forme_count - 1):
+                        poke_edit_data.master_formes_list[forme_pointer + x] = poke_edit_data.base_species_list[index] + ' ' + str(x+1)
+    #print(poke_edit_data.master_formes_list)
+    #if we loaded Model before Personal, need to load Model now
+    if(poke_edit_data.run_model_later):
+        poke_edit_data = update_model_list(poke_edit_data)
+        
+
+    
+    
+    #copy this into the current list to initialize properly (particularly when loading from cfg)
+    poke_edit_data.current_base_species_list = poke_edit_data.base_species_list.copy()
+    poke_edit_data.current_personal_list = poke_edit_data.master_formes_list.copy()
+    poke_edit_data.current_levelup_list = poke_edit_data.master_formes_list.copy()
+    poke_edit_data.current_evolution_list = poke_edit_data.master_formes_list.copy()
+    
+    return(poke_edit_data)
 
 
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
-def load_GARC(garc_path, target, gameassert):
-    global personal_path
-    global levelup_path
-    global evolution_path
-    global model_path
-    global game
-    global max_species_index
-    global personal
-    global levelup
-    global evolution
-    global model
-    
-    global personal_filename_length
-    global evolution_filename_length
-    global levelup_filename_length
-    global model_filename_length
+def load_GARC(poke_edit_data, garc_path, target, gameassert):
+
     if(os.path.exists(garc_path)):
-        temp = os.listdir(garc_path)
+        temp = []
+        ext = ''
+        #for each file there, pull the extension off, append the filename itself to the temp array.
+        for filename in os.listdir(garc_path):
+            filename_stripped, ext = os.path.splitext(filename)
+            temp.append(filename_stripped)
+        #this does assume that everything in the folder has the same extension, but that should be the case...
+        poke_edit_data.extracted_extension = ext
     
         if(len(temp) > 0):
-            game = gameassert
+            poke_edit_data.game = gameassert
+            match poke_edit_data.game:
+                case "XY":
+                    poke_edit_data.max_species_index = 721
+                case "ORAS":
+                    poke_edit_data.max_species_index = 721
+                case "USUM":
+                    poke_edit_data.max_species_index = 807
             match target:
                 case "Model":
-                    model_path = garc_path
-                    model = temp
-                    model_filename_length = len(temp[0]) - 4
-                    update_model_list()
+                    poke_edit_data.model_path = garc_path
+                    poke_edit_data.model = temp
+                    poke_edit_data.model_filename_length = len(temp[0])
+                    poke_edit_data = update_model_list(poke_edit_data)
                 case "Personal":
-                    personal_path = garc_path
-                    personal = temp
-                    personal_filename_length = len(temp[0]) - 4
-                    update_species_list()
+                    poke_edit_data.personal_path = garc_path
+                    poke_edit_data.personal = temp
+                    poke_edit_data.personal_filename_length = len(temp[0])
+                    poke_edit_data = update_species_list(poke_edit_data)
                 case "Levelup":
-                    levelup_path = garc_path
-                    levelup = temp
-                    levelup_filename_length = len(temp[0]) - 4
+                    poke_edit_data.levelup_path = garc_path
+                    poke_edit_data.levelup = temp
+                    poke_edit_data.levelup_filename_length = len(temp[0])
                 case "Evolution":
-                    evolution_path= garc_path
-                    evolution = temp
-                    evolution_filename_length = len(temp[0]) - 4
-            match game:
-                case "XY":
-                    max_species_index = 721
-                case "ORAS":
-                    max_species_index = 721
-                case "USUM":
-                    max_species_index = 807
+                    poke_edit_data.evolution_path= garc_path
+                    poke_edit_data.evolution = temp
+                    poke_edit_data.evolution_filename_length = len(temp[0])
     else:
         print("Garc folder not found, unreadable, or empty")
+    return(poke_edit_data)
     
 
-def choose_GARC(target, gameassert):
+def choose_GARC(poke_edit_data, target, gameassert):
 
     targetpath = ''
     match gameassert:
@@ -200,25 +288,23 @@ def choose_GARC(target, gameassert):
                        targetpath = '013'
                    case "Evolution":
                        targetpath = '014'
+        case "Select Game":
+               print("Error: Game not set")
+               return
                        
     folder_path = askdirectory(title='Select extracted ' + target + ' Garc Folder, a' + targetpath)
     
-    load_GARC(folder_path, target, gameassert)
+    poke_edit_data = load_GARC(poke_edit_data, folder_path, target, gameassert)
+    return(poke_edit_data)
 
 
                 
-def load_game_cfg():
+def load_game_cfg(poke_edit_data):
     
-    game_cfg_path = askdirectory(title='Select saved cfg file')
-    
-    global game
-    global personal_path
-    global levelup_path
-    global evolution_path
-    global model_path
-    global max_species_index
+    game_cfg_path = askopenfilename(title='Select cfg file', defaultextension='.cfg',filetypes= [('config','.cfg')])
     
     cfg_array = []
+    
     '''read all the lines
     0 = game
     1 = Personal
@@ -229,32 +315,42 @@ def load_game_cfg():
     6 = Sprites_2
     7 = portrait_1
     8 = portrait_2
-    9 = max species index
+    9 = extension
+    10 = max species index
     '''
+    
+    cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','','','',"Extension","Max Species Index"]
+ 
     
     with open(game_cfg_path, "r") as cfg:
         cfg_array = [line.rstrip() for line in cfg]
     
-    game = cfg_array[0]
-    personal_path = cfg_array[1]
-    levelup_path = cfg_array[2]
-    evolution_path = cfg_array[3]
-    model_path = cfg_array[4]
+    poke_edit_data.game = cfg_array[0]
+    poke_edit_data.personal_path = cfg_array[1]
+    poke_edit_data.levelup_path = cfg_array[2]
+    poke_edit_data.evolution_path = cfg_array[3]
+    poke_edit_data.model_path = cfg_array[4]
     #evolution = cfg_array[5]
     #evolution = cfg_array[6]
     #evolution = cfg_array[7]
     #evolution = cfg_array[8]
-    max_species_index = cfg_array[9]
-    extracted_extension = '.bin'
+    poke_edit_data.extracted_extension = cfg_array[9]
+    poke_edit_data.max_species_index = cfg_array[10]
+    
+    print('Data loaded as follows:')
+    for x in range(len(cfg_desc)):
+        if(cfg_desc[x] != ''):
+            print(cfg_desc[x] + ': ' + str(cfg_array[x]))
+    print('\n')
+
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
+    return(poke_edit_data)
     
 
-    load_GARC(personal_path, "Personal", game)
-    load_GARC(levelup_path, "Levelup", game)
-    load_GARC(evolution_path, "Evolution", game)
-    load_GARC(model_path, "Model", game)
-    
-
-def save_game_cfg():
+def save_game_cfg(poke_edit_data):
  
     game_cfg_path = asksaveasfilename(title='Select location to save cfg file', defaultextension='.cfg',filetypes= [('config','.cfg')])
     
@@ -273,14 +369,18 @@ def save_game_cfg():
     9 = max species index
     '''
     
-    with open(game_cfg_path, "w") as cfg:
-        cfg.write(game + '\n')
-        cfg.write(personal_path + '\n')
-        cfg.write(levelup_path + '\n')
-        cfg.write(evolution_path + '\n')
-        cfg.write(model_path + '\n')
-        cfg.write('\n')#evolution = cfg_array[5]
-        cfg.write('\n') #evolution = cfg_array[6]
-        cfg.write('\n')#evolution = cfg_array[7]
-        cfg.write('\n')#evolution = cfg_array[8]
-        extracted_extension = '.bin'
+    try:
+        with open(game_cfg_path, "w") as cfg:
+            cfg.write(poke_edit_data.game + '\n')
+            cfg.write(poke_edit_data.personal_path + '\n')
+            cfg.write(poke_edit_data.levelup_path + '\n')
+            cfg.write(poke_edit_data.evolution_path + '\n')
+            cfg.write(poke_edit_data.model_path + '\n')
+            cfg.write('\n')#evolution = cfg_array[5]
+            cfg.write('\n') #evolution = cfg_array[6]
+            cfg.write('\n')#evolution = cfg_array[7]
+            cfg.write('\n')#evolution = cfg_array[8]
+            cfg.write(poke_edit_data.extracted_extension + '\n')
+            cfg.write(str(poke_edit_data.max_species_index))
+    except:
+        print("No file selected")

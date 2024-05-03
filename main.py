@@ -189,11 +189,16 @@ def check_model(e):
 def set_games_checklist(gameinput):
     games_temp.set(gameinput)
 
-
-
-
+#update all listboxes
+def update_all_listboxes(poke_edit_data):
+    update(poke_edit_data.model_source_list, model_listbox)
+    update(poke_edit_data.master_formes_list, evolution_listbox)
+    update(poke_edit_data.master_formes_list, levelup_listbox)
+    update(poke_edit_data.master_formes_list, personal_listbox)
+    update(poke_edit_data.base_species_list, base_species_listbox)
+    
 #load/save config
-cfg_load = Button(root, text = 'Load CFG', command = lambda: [load_game_cfg(poke_edit_data), update(poke_edit_data.base_species_list, base_species_listbox), update(poke_edit_data.master_formes_list, personal_listbox), update(poke_edit_data.master_formes_list, levelup_listbox), update(poke_edit_data.master_formes_list, evolution_listbox), update(poke_edit_data.model_source_list, model_listbox), set_games_checklist(poke_edit_data.game)], height = 2, width = 12, pady = 5, padx = 7)
+cfg_load = Button(root, text = 'Load CFG', command = lambda: [load_game_cfg(poke_edit_data), update_all_listboxes(poke_edit_data), set_games_checklist(poke_edit_data.game)], height = 2, width = 12, pady = 5, padx = 7)
 cfg_load.grid(row = 0, column = 0)
 
 
@@ -337,7 +342,7 @@ number_formes_entry.grid(row = 3, column = 1)
 
 #Run
 
-execute_buttom = Button(root, text = 'Insert Forme(s)', command = lambda: pre_check(poke_edit_data), height = 2, width = 15, pady = 5, padx = 7)
+execute_buttom = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_all_listboxes(poke_edit_data)], height = 2, width = 15, pady = 5, padx = 7)
 execute_buttom.grid(row = 4, column = 1)
 
 

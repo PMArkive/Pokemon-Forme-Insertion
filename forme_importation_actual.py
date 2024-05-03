@@ -120,40 +120,39 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             model_file_count = 0
             
             if(poke_edit_data.game == 'XY'):
-                model_start_file = 8*(model_source_index)+4
-                model_dest_file = 8*total_previous_models+4+7
+                model_start_file = 8*(model_source_index)+3+1
+                model_dest_file = 8*total_previous_models+3
                 model_file_count = 8
             elif(poke_edit_data.game == "ORAS"):
                 #Need someone to check
-                model_start_file = 8*(model_source_index)+4
-                model_dest_file = 8*total_previous_models+4+7
+                model_start_file = 8*(model_source_index)+3+1
+                model_dest_file = 8*total_previous_models+3
                 model_file_count = 8
-            #assume USUM
+            #assume SM or USUM
             else:
                 model_start_file = 9*(model_source_index)+1
-                model_dest_file = 9*total_previous_models+1+8
+                model_dest_file = 9*total_previous_models
                 model_file_count = 9
             
             print("Shifting model files")
 
             #shift the later model files forward
             for file_number, file in reversed(list(enumerate(poke_edit_data.model))):
-                
                 #if we've hit the *last* file of the Pokemon we're adding forme(s) too, stop this
                 if(file_number == model_dest_file):
                     break
                 
                 #move file (# files per model)*(# new formes added) numbers forward
                 os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
-            
-            
+                #print(file_number, ': ', file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), ' to ', file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+            #print(model_start_file, model_dest_file)
             #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
             for x in range(0, new_forme_count):
                 for y in range(0, model_file_count):
                     shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, model_dest_file + x + y + 1, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
             
-            print("New Model files initialized")
-            print("Updating header")
+            print("New model files initialized")
+            print("Updating model header")
             
             #Now need to update model header
             

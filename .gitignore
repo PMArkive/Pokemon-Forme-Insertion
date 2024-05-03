@@ -155,3 +155,4 @@ cython_debug/
 .vs/slnx.sqlite
 .vs/VSWorkspaceState.json
 z.cfg
+output/main.exe

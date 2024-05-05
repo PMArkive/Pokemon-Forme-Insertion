@@ -338,7 +338,6 @@ def load_game_cfg(poke_edit_data):
     
     with open(game_cfg_path, "r") as cfg:
         cfg_array = [line.rstrip() for line in cfg]
-    
     poke_edit_data.game = cfg_array[0]
     poke_edit_data.personal_path = cfg_array[1]
     poke_edit_data.levelup_path = cfg_array[2]
@@ -364,10 +363,11 @@ def load_game_cfg(poke_edit_data):
     return(poke_edit_data)
     
 
-def save_game_cfg(poke_edit_data):
+def save_game_cfg(poke_edit_data, game_set):
  
     game_cfg_path = asksaveasfilename(title='Select location to save cfg file', defaultextension='.cfg',filetypes= [('config','.cfg')])
     
+    poke_edit_data.game = game_set
     
     cfg_array = []
     '''read all the lines

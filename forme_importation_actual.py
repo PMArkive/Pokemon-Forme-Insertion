@@ -75,7 +75,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
         #copy source personal file to new location
         shutil.copy(file_namer(poke_edit_data.personal_path, personal_source_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.personal_path, start_location + offset + new_offset_start, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension))
         personal_file_update(poke_edit_data, start_location + offset + new_offset_start, total_formes, start_location)
-        print(start_location + offset + new_offset_start)
+        #print(start_location + offset + new_offset_start)
         #copy evolution file to new location
         shutil.copy(file_namer(poke_edit_data.evolution_path, evolution_source_index, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, start_location + offset + new_offset_start, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension))
         
@@ -110,6 +110,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             if(def_model):
                 model_source_index = model_hex_map[4*(base_form_index - 1) + 1]*256 + model_hex_map[4*(base_form_index - 1) + 0]
             
+            #print(model_source_index)
             #had to wait to open the file and grab the above so we could see where to insert the file
             
             #this is the model we're copying
@@ -272,6 +273,6 @@ def add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model
             start_location = index
             break
 
-
+    #print(model_source_index)
     poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, existing_formes_array, def_model, total_formes, enough_room)
     return(poke_edit_data)

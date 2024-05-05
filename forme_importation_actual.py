@@ -125,8 +125,8 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
                 model_file_count = 8
             elif(poke_edit_data.game == "ORAS"):
                 #Need someone to check
-                model_start_file = 8*(model_source_index)+3+1
-                model_dest_file = 8*total_previous_models+3
+                model_start_file = 8*(model_source_index)+2+1
+                model_dest_file = 8*total_previous_models+2
                 model_file_count = 8
             #assume SM or USUM
             else:

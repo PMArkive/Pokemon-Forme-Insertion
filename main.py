@@ -1,4 +1,5 @@
 from ast import Not
+from pickle import PERSID
 import shutil
 import os
 import sys
@@ -14,26 +15,25 @@ def pre_check(poke_edit_data):
     
     base_form_index = int(poke_edit_data.base_species_list.index(base_species_entry.get()))
     new_forme_count = int(number_formes_entry.get())
-    
-    #print(base_form_index, new_forme_count)
+    #print(base_form_index, new_forme_count)print(model_source_index)
 
-    if(model_bool or model_entry.get() == ''):
-        #this is not the correct value, that will be computed later based on model_bool passing
+    if(model_bool.get() or model_entry.get() == ''):
+        #this is not the correct index in the Model file structure, that will be computed later
         model_source_index = base_form_index
     else:
         model_source_index = poke_edit_data.model_source_list.index(model_entry.get())
     
-    if(personal_bool or personal_entry.get() == ''):
+    if(personal_bool.get() or personal_entry.get() == ''):
         personal_source_index = base_form_index
     else:
         personal_source_index = poke_edit_data.master_formes_list.index(personal_entry.get())
     
-    if(levelup_bool or levelup_entry.get() == ''):
+    if(levelup_bool.get() or levelup_entry.get() == ''):
         levelup_source_index = base_form_index
     else:
         levelup_source_index = poke_edit_data.master_formes_list.index(levelup_entry.get())
     
-    if(evolution_bool or evolution_entry.get() == ''):
+    if(evolution_bool.get() or evolution_entry.get() == ''):
         evolution_source_index = base_form_index
     else:
         evolution_source_index = poke_edit_data.master_formes_list.index(evolution_entry.get())
@@ -57,8 +57,8 @@ def pre_check(poke_edit_data):
         print("Evolution source is not an integer!")
         return
 
-
-    poke_edit_data= add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, model_bool)
+    print(model_source_index)
+    poke_edit_data= add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, model_bool.get())
     
     return(poke_edit_data)
 
@@ -202,7 +202,7 @@ cfg_load = Button(root, text = 'Load CFG', command = lambda: [load_game_cfg(poke
 cfg_load.grid(row = 0, column = 0)
 
 
-cfg_save = Button(root, text = 'Save CFG', command = lambda: save_game_cfg(poke_edit_data), height = 2, width = 12, pady = 5, padx = 7)
+cfg_save = Button(root, text = 'Save CFG', command = lambda: save_game_cfg(poke_edit_data, games_temp.get()), height = 2, width = 12, pady = 5, padx = 7)
 cfg_save.grid(row = 1, column = 0)
 
 

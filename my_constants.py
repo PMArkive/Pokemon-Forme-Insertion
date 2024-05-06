@@ -11,8 +11,10 @@
         self.game = ''
         self.max_species_index = 0
         self.personal = []
+        self.personal_table_length = 0
         self.levelup = []
         self.evolution = []
+        self.evolution_table_length = 0
         self.model = []
 
         self.run_model_later = False

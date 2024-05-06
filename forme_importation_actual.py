@@ -32,8 +32,8 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             with open(file_namer(poke_edit_data.personal_path, pokemon, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
                 with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
                     personal_hex_map.flush
-                    personal_hex_map.resize(0x54)
-                    for x in range(0,0x54):
+                    personal_hex_map.resize(poke_edit_data.personal_table_length)
+                    for x in range(0, poke_edit_data.personal_table_length):
                         personal_hex_map[x] = 0x00
                     personal_hex_map.flush
         
@@ -44,7 +44,8 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             with open(file_namer(poke_edit_data.evolution_path, pokemon, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
                 with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as evolution_hex_map:
                     evolution_hex_map.flush
-                    for x in range(0,0x40):
+
+                    for x in range(0, poke_edit_data.evolution_table_length):
                         evolution_hex_map[x] = 0x00
                     evolution_hex_map.flush
         

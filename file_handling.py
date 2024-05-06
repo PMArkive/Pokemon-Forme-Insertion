@@ -261,51 +261,61 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
 def choose_GARC(poke_edit_data, target, gameassert):
 
     targetpath = ''
+    #Evolution table has a fixed length per personal file, 0x30 in gen VI, 0x40 in gen VII
+    #Similarly, the Personal file itself is 0x50 in gen VI, 0x54 in gen VII (additional bytes for "is regional forme" and Species-specific Z move)
     match gameassert:
         case "XY":
-               match target:
-                   case "Model":
-                       targetpath = '007'
-                   case "Personal":
-                       targetpath = '218'
-                   case "Levelup":
-                       targetpath = '214'
-                   case "Evolution":
-                       targetpath = '215'
+            poke_edit_data.evolution_table_length = 0x30
+            poke_edit_data.personal_table_length = 0x50
+            match target:
+                case"Model":
+                    targetpath = '007'
+                case"Personal":
+                    targetpath = '218'
+                case"Levelup":
+                    targetpath = '214'
+                case"Evolution":
+                    targetpath = '215'
         case "ORAS":
-               match target:
-                   case "Model":
-                       targetpath = '008'
-                   case "Personal":
-                       targetpath = '195'
-                   case "Levelup":
-                       targetpath = '191'
-                   case "Evolution":
-                       targetpath = '192'
+            poke_edit_data.evolution_table_length = 0x30
+            poke_edit_data.personal_table_length = 0x50
+            match target:
+                case "Model":
+                    targetpath = '008'
+                case "Personal":
+                    targetpath = '195'
+                case"Levelup":
+                    targetpath = '191'
+                case"Evolution":
+                    targetpath = '192'
         case "SM":
-               match target:
-                   case "Model":
-                       targetpath = '093'
-                   case "Personal":
-                       targetpath = '017'
-                   case "Levelup":
-                       targetpath = '013'
-                   case "Evolution":
-                       targetpath = '014'
+            poke_edit_data.evolution_table_length = 0x40
+            poke_edit_data.personal_table_length = 0x54
+            match target:
+                case"Model":
+                    targetpath = '093'
+                case"Personal":
+                    targetpath = '017'
+                case"Levelup":
+                    targetpath = '013'
+                case"Evolution":
+                    targetpath = '014'
         case "USUM":
-               match target:
-                   case "Model":
-                       targetpath = '094'
-                   case "Personal":
-                       targetpath = '017'
-                   case "Levelup":
-                       targetpath = '013'
-                   case "Evolution":
-                       targetpath = '014'
+            poke_edit_data.evolution_table_length = 0x40
+            poke_edit_data.personal_table_length = 0x54
+            match target:
+                case"Model":
+                    targetpath = '094'
+                case"Personal":
+                    targetpath = '017'
+                case"Levelup":
+                    targetpath = '013'
+                case"Evolution":
+                    targetpath = '014'
         case "Select Game":
                print("Error: Game not set")
                return
-                       
+
     folder_path = askdirectory(title='Select extracted ' + target + ' Garc Folder, a' + targetpath)
     
     poke_edit_data = load_GARC(poke_edit_data, folder_path, target, gameassert)
@@ -350,6 +360,16 @@ def load_game_cfg(poke_edit_data):
     poke_edit_data.extracted_extension = cfg_array[9]
     poke_edit_data.max_species_index = cfg_array[10]
     
+    if(poke_edit_data.game in {'XY', 'ORAS'}):
+        poke_edit_data.evolution_table_length = 0x30
+        poke_edit_data.personal_table_length = 0x50
+    elif(poke_edit_data.game in {'SM', 'USUM'}):
+        poke_edit_data.evolution_table_length = 0x40
+        poke_edit_data.personal_table_length = 0x54
+    else:
+        print('Warning: Game not correctly set in cfg, ensure a game is selected, then reload any GARC')
+        
+
     print('Data loaded as follows:')
     for x in range(len(cfg_desc)):
         if(cfg_desc[x] != ''):

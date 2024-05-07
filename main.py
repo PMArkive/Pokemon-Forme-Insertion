@@ -202,7 +202,7 @@ cfg_load = Button(root, text = 'Load CFG', command = lambda: [load_game_cfg(poke
 cfg_load.grid(row = 0, column = 0)
 
 
-cfg_save = Button(root, text = 'Save CFG', command = lambda: save_game_cfg(poke_edit_data, games_temp.get()), height = 2, width = 12, pady = 5, padx = 7)
+cfg_save = Button(root, text = 'Save CFG & CSV', command = lambda: save_game_cfg(poke_edit_data, games_temp.get()), height = 2, width = 12, pady = 5, padx = 7)
 cfg_save.grid(row = 1, column = 0)
 
 
@@ -330,6 +330,18 @@ update(poke_edit_data.master_formes_list, evolution_listbox)
 
 evolution_listbox.bind("<Double-1>", fillout_evolution)
 evolution_entry.bind("<KeyRelease>", check_evolution)
+
+#Model list file path Selection
+
+load_pokelist_csv_button = Button(root, text = 'Load CSV', command = lambda: user_prompt_load_CSV(poke_edit_data, "Pokemon Names and Files"), height = 2, width = 15, pady = 5, padx = 7)
+load_pokelist_csv_button.grid(row = 0, column = 6)
+
+save_pokelist_csv_button = Button(root, text = 'Save CSV', command = lambda: user_prompt_write_CSV(poke_edit_data, "Pokemon Names and Files"), height = 2, width = 15, pady = 5, padx = 7)
+save_pokelist_csv_button.grid(row = 0, column = 6)
+
+create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: create_refresh_CSV(poke_edit_data, "Pokemon Names and Files", games_temp.get()), height = 2, width = 15, pady = 5, padx = 7)
+create_pokelist_csv_button.grid(row = 4, column = 6)
+
 
 #Number of New Formes
 

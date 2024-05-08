@@ -6,8 +6,9 @@ import errno
 from my_constants import *
 from file_handling import *
 
-def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, existing_formes_array, def_model, total_formes, enough_room):
-
+def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, existing_formes_array, def_model, total_alt_formes, enough_room):
+    
+    total_formes = total_alt_formes + 1
     print("Initializing new data")
     #Part 1, Personal file, update existing Personal blocks with new forme count and pointer
     personal_file_update(poke_edit_data, base_form_index, total_formes, start_location)
@@ -200,7 +201,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             for offset in range(0, 2*new_forme_count):
                 model_hex_map[poke_edit_data.max_species_index*4 + total_previous_models*2 + offset] = 0x00
             
-            #write model file back to discard
+            #write model file back
             model_hex_map.flush
             print("Model header updated")
     
@@ -226,9 +227,9 @@ def add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model
     #find empty slot to write new forme(s) to
     start_location = 0
     
-    total_formes = len(existing_formes_array) + new_forme_count + 1
+    total_alt_formes = len(existing_formes_array) + new_forme_count
     consecutive_open_found = 0
-    print("Looking for first empty space to write to")
+    print('\n' + "Looking for first empty space to write to")
     
     for index in range(poke_edit_data.max_species_index, 9999):
         path_temp = file_namer(poke_edit_data.personal_path, index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension)
@@ -245,10 +246,10 @@ def add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model
                 consecutive_open_found += 1
                 
                 #case there is enough room here to put everything
-                if(consecutive_open_found == total_formes):
+                if(consecutive_open_found == total_alt_formes):
                     break
                 #case there is enough cleared room after existing formes
-                elif(consecutive_open_found == total_formes - len(existing_formes_array) and index - consecutive_open_found == existing_formes_array[-1]):
+                elif(consecutive_open_found == total_alt_formes - len(existing_formes_array) and index - consecutive_open_found == existing_formes_array[-1]):
                     start_location = existing_formes_array[0]
                     enough_room = True
                     #delete the zeroed out files to prepare:
@@ -273,7 +274,11 @@ def add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model
         else:
             start_location = index
             break
+    
+    if(len(existing_formes_array) == 0):
+        print('Existing formes moved, they now start at index ' + str(start_location))
 
-    #print(model_source_index)
-    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, existing_formes_array, def_model, total_formes, enough_room)
+    print('Inserted new forme(s) starting at index ' + str(start_location + new_forme_count))
+    
+    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, existing_formes_array, def_model, total_alt_formes, enough_room)
     return(poke_edit_data)

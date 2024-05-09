@@ -68,7 +68,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
                 
     #now initialize the newly added formes
     
-    #make sure we start after any existing shifted formes
+    #offset to adjust for preexisting formes
     new_offset_start = len(existing_formes_array)
     
     for offset in range(0, new_forme_count):
@@ -95,7 +95,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
     #create new sets of model files
     #don't forget model index starts from 0 unlike everything else
     #first figure out which files we're copying
-    
+    total_previous_models = 0
     
     with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
@@ -192,8 +192,6 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             #add 2*<number formes added> bytes to the model table
             model_hex_map.resize(len(model_hex_map) + 2*new_forme_count)
             
-            total_previous_models
-            
             #move(dest, src, cont) - moves the cont bytes starting at src to dest (note destination is just source plus twice as many bytes as models inserted)
             model_hex_map.move(poke_edit_data.max_species_index*4 + total_previous_models*2 + 2*new_forme_count, poke_edit_data.max_species_index*4 + total_previous_models*2, length_of_bytes_to_move)
             
@@ -203,9 +201,66 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             
             #write model file back
             model_hex_map.flush
-            print("Model header updated")
+            print('Model header updated')
     
-    print("New formes initialized!")
+    print('New formes initialized!' + '\n')
+
+    #Now update the csv table. It might be perhaps slightly more efficient to do each bit as it happens above, but this code is easier to follow
+    #first get the row number of all instances of the current species
+    working_indices = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, int(base_form_index))
+    
+    
+    #First, if we moved existing alt formes, need to update their Personal Index
+    for offset, csv_index in enumerate(working_indices):
+        if(poke_edit_data.master_list_csv[csv_index][3] in existing_formes_array):
+            poke_edit_data.master_list_csv[csv_index][3] = start_location + offset
+    
+    #grab the base species name since we'll be using that at least once
+    base_species_name = poke_edit_data.master_list_csv[working_indices[0]][0]
+    
+    #and the last model index number (as we inserted the models after that)
+    model_index_start = poke_edit_data.master_list_csv[working_indices[-1]][4]
+    
+    #index we start inserting the new rows from
+    csv_insertion_point = max(working_indices) + 1
+    
+    print(csv_insertion_point)
+
+    #Second, we insert the new rows
+    #base species index, personal file index, model index, species name, forme name
+    for offset in range(new_forme_count):
+        #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
+        #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
+        poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, new_offset_start + offset + 1, base_form_index, start_location + new_offset_start + offset, 0])
+        
+    #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
+    for offset in range(csv_insertion_point, len(poke_edit_data.master_list_csv)):
+        
+        if(poke_edit_data.master_list_csv[offset][3] in poke_edit_data.modelless_formes):
+                csv_insertion_point += 1
+                continue
+        poke_edit_data.master_list_csv[offset][4] = model_index_start + offset - csv_insertion_point + 1
+        
+    try:
+        poke_edit_data = write_CSV(poke_edit_data)
+    except:
+        print('Please close your Pokemon Names and Files CSV if it is open')
+        poke_edit_data.csv_pokemon_list_path = askopenfilename(title='Select Pokemon Names and Files CSV')
+        write_CSV(poke_edit_data)
+        
+    poke_edit_data = load_names_from_CSV(poke_edit_data, True)
+    
+    print('Pokemon Names and Files CSV updated' + '\n')
+    #refresh filenames
+    poke_edit_data.run_model_later = False    
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
+    
+    print('Internal tables updated with changes' + '\n' + '\n')
+    
+
     return(poke_edit_data)
  
 

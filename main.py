@@ -65,6 +65,7 @@ def pre_check(poke_edit_data):
 root = Tk()
 root.title('Pokemon Forme Insertion')
 root.geometry('950x300')
+root.iconbitmap("Mewtwo-tefillin-head.ico")
 
 poke_edit_data = Pokedata()
 
@@ -197,6 +198,7 @@ def update_all_listboxes(poke_edit_data):
     update(poke_edit_data.master_formes_list, levelup_listbox)
     update(poke_edit_data.master_formes_list, personal_listbox)
     update(poke_edit_data.base_species_list, base_species_listbox)
+    return(poke_edit_data)
 
 for x in range(5):
     Grid.rowconfigure(root, x, weight = 1)

@@ -156,13 +156,23 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
             for x in range(0, new_forme_count):
                 for y in range(0, model_file_count):
-                    shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, model_dest_file + x + y + 1, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                    shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+            
+            #reset the model filename list, since we added stuff to the end
+            poke_edit_data.model = []
+            for filename in os.listdir(poke_edit_data.model_path):
+                filename_stripped, ext = os.path.splitext(filename)
+                poke_edit_data.model.append(filename_stripped)
             
             print("New model files initialized")
             print("Updating model header")
             
             #Now need to update model header
-            
+            '''
+                0x1 == Any model exists?
+                0x2 == Gender-difference model/forme exists. It seems that if this is set AND the next bit is not set, then the 2nd model goes to the 2nd personal file (it assumes it's an alt-gender forme like Meowstic)
+                0x4 == other cause of forme models. If this is set, then the 2nd model is assumed to be for the female of the base species, and the 3rd model goes to the 2nd personal file, etc.
+            '''
             #set the non-gendered form bit to true if not so set
             if(model_hex_map[4*(base_form_index - 1) + 3] < 0x05):
                 model_hex_map[4*(base_form_index - 1) + 3] += 0x04

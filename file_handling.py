@@ -144,33 +144,32 @@ def update_model_list(poke_edit_data):
     else:
         poke_edit_data.run_model_later = False
         print('Initializing default Model list')
-        
-    poke_edit_data.model_source_list = []
+    model_temp_list = []
     with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as model_hex_map:
+            
             #for base formes plus egg at poke_edit_data.max_species_index
-            for index in range(1, poke_edit_data.max_species_index + 2):
+            for index in range(poke_edit_data.max_species_index):
                 #number of model sets this species has
-                number_of_models = model_hex_map[(index - 1)*4 + 2]
-                #avoid issues of having 'egg' show up in main species list or having to have a second array for everything just with egg at the end
-                temp_name = 'Egg'
-                if(index != poke_edit_data.max_species_index+1):
-                    temp_name = poke_edit_data.base_species_list[index]
+                number_of_models = int(model_hex_map[(index)*4 + 2])
+              
+                #grab the name
+                temp_name = poke_edit_data.base_species_list[index + 1]
                 
                 #name each model as <Pokemon species> <number>, the base forme is named <Pokemon> 0 so that (in at least most cases) the model-number lines up with the forme-number (where there are multiple)
                 for distinct_models in range(0, number_of_models):
-                    poke_edit_data.model_source_list.append(temp_name + ' ' + str(distinct_models))
+                    model_temp_list.append(temp_name + ' ' + str(distinct_models))
     
+    #append the Egg
+    model_temp_list.append('Egg')
+
     #copy this into the current list to initialize properly (particularly when loading from cfg)
+    poke_edit_data.model_source_list = model_temp_list.copy()                
     poke_edit_data.current_model_source_list = poke_edit_data.model_source_list.copy()
-    
-    #
-    if(not(poke_edit_data.run_model_later)):
-        poke_edit_data = load_names_from_CSV(poke_edit_data)
 
     return(poke_edit_data)
 
-def conditional_update_modelless_formes_list(poke_edit_data):
+'''def conditional_update_modelless_formes_list(poke_edit_data):
     if(poke_edit_data.modelless_formes == []):
         match poke_edit_data.game:
             case "XY":
@@ -181,31 +180,190 @@ def conditional_update_modelless_formes_list(poke_edit_data):
                 poke_edit_data.modelless_formes = sm_modelless_formes
             case "USUM":
                 poke_edit_data.modelless_formes = usum_modelless_formes
+    return(poke_edit_data)'''
+
+#adds missing models (e.g. Dusk Rockruff or from incomplete manual forme insertion)
+def add_missing_models(poke_edit_data):
+    #locate base species with missing models
+    personal_forme_count = []
+    #updated_species = []
+    temp_master = []
+    #grab the current game's default list:
+
+
+    for species_index in range(1, poke_edit_data.max_species_index + 1):
+        
+        #build array with the jth element being the j+1th species' personal forme count
+        with open(file_namer(poke_edit_data.personal_path, species_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+            with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
+                    #if the forme pointer bytes are 0x0000, then there is only the single Personal file    
+                    if(personal_hex_map[0x1C] != 0x0 or personal_hex_map[0x1D] != 0x0):
+                        personal_forme_count.append(personal_hex_map[0x20])
+                    else:
+                        personal_forme_count.append(0x1)
+
+    #print(personal_forme_count)
+    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+        with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
+            model_hex_map.flush
+            
+            #look for species with fewer formes than personal files. This 
+            for species_index, current_personal_forme_count in reversed(list(enumerate(personal_forme_count))):
+                
+                #if this species has a gender-difference forme, subtract one from the model count (this detects if, for example, we added Mega Venusar Y but no model, because then we have 3 personal files (base, original Mega, and Y) and 3 model files (base male, base female, original mega), but only if the total formes is more than in the stock game
+                #It might be possible to add more than 1 gender difference forme (e.g. have Mega Venusaur have alt female mega forme), if we verify will figure out how to find that out from this table
+                total_personal_models = model_hex_map[4*species_index + 2]
+                    
+                
+                '''
+                    cases
+                    1) More Models than Personal. Don't care
+                    2) More Personal than Model. Only should happen from manual insert or something like Rockruff. Either way need to insert Personal - Model (from GARC) models and update the master list. This will always run after the thing that rebuilds the CSV to have the right number of rows
+                '''
+                        
+                amount_to_add = current_personal_forme_count - total_personal_models
+                if(amount_to_add > 0):
+                    print(amount_to_add, poke_edit_data.base_species_list[species_index +1], current_personal_forme_count, total_personal_models)
+                
+                #print(real_personal_count, real_model_count, stock_model_exceeds_personal, amount_to_add, current_personal_forme_count, total_personal_models)
+                if(amount_to_add > 0):
+                    
+                    #updated_species.append(species_index+1)
+                    new_forme_count = amount_to_add
+                    #number of models on pokemon getting new forms + total number of models of all prior Pokemon
+                    total_previous_models = model_hex_map[4*(species_index) + 2] + model_hex_map[4*(species_index) + 1]*256 + model_hex_map[4*(species_index) + 0]
+                
+                    model_source_index = model_hex_map[4*(species_index) + 1]*256 + model_hex_map[4*(species_index) + 0]
+            
+                    #this is the model we're copying
+                    model_start_file = 0
+                    #this is where we have to insert those copies after
+                    model_dest_file = 0
+                    #this is how many of those files there are per new forme
+                    model_file_count = 0
+            
+                    if(poke_edit_data.game == 'XY'):
+                        model_start_file = 8*(model_source_index)+3+1
+                        model_dest_file = 8*total_previous_models+3
+                        model_file_count = 8
+                    elif(poke_edit_data.game == "ORAS"):
+                        #Need someone to check
+                        model_start_file = 8*(model_source_index)+2+1
+                        model_dest_file = 8*total_previous_models+2
+                        model_file_count = 8
+                    #assume SM or USUM
+                    else:
+                        model_start_file = 9*(model_source_index)+1
+                        model_dest_file = 9*total_previous_models
+                        model_file_count = 9
+            
+                    print("Shifting model files for species after index", str(species_index ))
+
+                    #shift the later model files forward
+                    for file_number, file in reversed(list(enumerate(poke_edit_data.model))):
+                        #if we've hit the *last* file of the Pokemon we're adding forme(s) too, stop this
+                        if(file_number == model_dest_file):
+                            break
+                        #move file (# files per model)*(# new formes added) numbers forward
+                        os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                        
+                        print(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), ' ', file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                       
+                        #update the model file list. Otherwise if we do more than 1 forme it will miss the last files and crash
+                        poke_edit_data.model.append(file_number + model_file_count*new_forme_count)
+                    #print(model_start_file, model_dest_file)
+                    #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
+                    for x in range(0, new_forme_count):
+                        for y in range(0, model_file_count):
+                            shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, model_dest_file + x + y + 1, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                    
+                    
+                    #reset the model filename list, since we added stuff to the end
+                    poke_edit_data.model = []
+                    for filename in os.listdir(poke_edit_data.model_path):
+                        filename_stripped, ext = os.path.splitext(filename)
+                        poke_edit_data.model.append(filename_stripped)
+
+                    print("New model files initialized for species index", str(species_index + 1))
+                    print("Updating model header for species index", str(species_index + 1))
+            
+                    #Now need to update model header
+            
+                    #set the non-gendered form bit to true if not so set
+                    if(model_hex_map[4*(species_index) + 3] < 0x05):
+                        model_hex_map[4*(species_index) + 3] += 0x04
+            
+            
+                    #update the number of models for the species
+                    model_hex_map[4*(species_index) + 2] += new_forme_count
+            
+            
+                    #update the "model count so far" value
+                    #poke_edit_data.max_species_index + 1 because egg is last at position poke_edit_data.max_species_index (0 is Bulba, poke_edit_data.max_species_index - 1 is the last species in nat dex)
+                    #because for loop, would need to subtract 1 (0,poke_edit_data.max_species_index - 1) normally, but +1 for egg
+            
+                    #grab model count so far
+                    model_count = 0
+            
+                    #update number of models
+                    #start from the beginning just in case something erred at another point
+                    for index in range(0, poke_edit_data.max_species_index):
+                        model_hex_map[4*index + 0], model_hex_map[4*index + 1] = little_endian_chunks(model_count)
+                        model_count += model_hex_map[4*index + 2]
+             
+                    #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
+                    #This section starts at poke_edit_data.max_species_index*4
+            
+            
+                    #number of bytes to move
+                    #this is the length (in bytes) of the entire table, minus 4*(poke_edit_data.max_species_index+1) (to include the Egg), minus the number of models before the spot we're inserting into:
+                    length_of_bytes_to_move = len(model_hex_map) - (poke_edit_data.max_species_index+1)*4 - total_previous_models*2
+            
+                    #add 2*<number formes added> bytes to the model table
+                    model_hex_map.resize(len(model_hex_map) + 2*new_forme_count)
+            
+                    #move(dest, src, cont) - moves the cont bytes starting at src to dest (note destination is just source plus twice as many bytes as models inserted)
+                    model_hex_map.move(poke_edit_data.max_species_index*4 + total_previous_models*2 + 2*new_forme_count, poke_edit_data.max_species_index*4 + total_previous_models*2, length_of_bytes_to_move)
+            
+                    #set the bytes for the new models to 0x00
+                    for offset in range(0, 2*new_forme_count):
+                        model_hex_map[poke_edit_data.max_species_index*4 + total_previous_models*2 + offset] = 0x00
+                    print('Model header updated for species index', str(species_index + 1))
+
+    #print('Missing formes initialized!' + '\n')
+
+    #Now update the csv table. All we did was add model files for what's there, so all we have to do is start at the 2nd row and add 1 the model index every time we go forwards
+    for row_number, row in enumerate(poke_edit_data.master_list_csv):
+        if(row_number != 0):
+            row[4] = row_number - 1
+    
+    #no formes should be without model now:
+    poke_edit_data.modelless_exists = False
+   # print('Internal tables updated with changes' + '\n' + '\n')
+    
+
     return(poke_edit_data)
 
-
-
-def update_species_list(poke_edit_data):
+def update_species_list(poke_edit_data, overwrite_from_default = True):
     
-    #Assume user is either creating new thing, or that this is loading from config, in which case the custom list hasn't loaded yet
-
-    print('Initializing default Species list')
-    #set base species list based on which game we're dealing with
-    #grab the species name from the master list
-    if(poke_edit_data.game == "USUM"):
-        poke_edit_data.master_list_csv = usum_master_list_csv.copy()
-        poke_edit_data.base_species_list = entire_of_column(usum_master_list_csv, 0, False)
-    if(poke_edit_data.game == "SM"):
-        poke_edit_data.master_list_csv = sm_master_list_csv.copy()
-        poke_edit_data.base_species_list = entire_of_column(sm_master_list_csv, 0, False)
-    elif(poke_edit_data.game == "XY" or poke_edit_data.game == "ORAS"):
-        poke_edit_data.master_list_csv = xy_master_list_csv.copy()
-        poke_edit_data.base_species_list = entire_of_column(xy_master_list_csv, 0, False)
-    
+    if(overwrite_from_default):
+        print('Initializing default Species list')
+        #set base species list based on which game we're dealing with
+        #grab the species name from the master list
+        if(poke_edit_data.game == "USUM"):
+            poke_edit_data.master_list_csv = usum_master_list_csv.copy()
+            poke_edit_data.base_species_list = entire_of_column(usum_master_list_csv, 0, False)
+        if(poke_edit_data.game == "SM"):
+            poke_edit_data.master_list_csv = sm_master_list_csv.copy()
+            poke_edit_data.base_species_list = entire_of_column(sm_master_list_csv, 0, False)
+        elif(poke_edit_data.game == "XY" or poke_edit_data.game == "ORAS"):
+            poke_edit_data.master_list_csv = xy_master_list_csv.copy()
+            poke_edit_data.base_species_list = entire_of_column(xy_master_list_csv, 0, False)
+    else:
+        poke_edit_data.base_species_list = entire_of_column(poke_edit_data.master_list_csv, 0, False)
         
     #remove the model-only Egg from the end:
     poke_edit_data.base_species_list.pop() 
-
 
     #first part of master formes list is just the base species list
     poke_edit_data.master_formes_list = poke_edit_data.base_species_list.copy()
@@ -253,8 +411,6 @@ def update_species_list(poke_edit_data):
     #if we loaded Model before Personal, need to load Model now
     if(poke_edit_data.run_model_later):
         poke_edit_data = update_model_list(poke_edit_data)
-    #if CSV is loaded, load the CSV and do the checks now. In order to only do this once, will run in whichever of personal-loading and model-loading is done second, if run_model_later is false load here. This will also make it run if you reload the personal for whatever reason.
-        poke_edit_data = load_names_from_CSV(poke_edit_data)
         
     #copy this into the current list to initialize properly (particularly when loading from cfg)
     poke_edit_data.current_base_species_list = poke_edit_data.base_species_list.copy()
@@ -265,7 +421,7 @@ def update_species_list(poke_edit_data):
     return(poke_edit_data)
 
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
-def load_GARC(poke_edit_data, garc_path, target, gameassert):
+def load_GARC(poke_edit_data, garc_path, target, gameassert, overwrite_from_default = True):
 
     if(os.path.exists(garc_path)):
         temp = []
@@ -294,12 +450,12 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
                     poke_edit_data.model = temp
                     poke_edit_data.model_filename_length = len(temp[0])
                     poke_edit_data = update_model_list(poke_edit_data)
-                    conditional_update_modelless_formes_list(poke_edit_data)
+                    #conditional_update_modelless_formes_list(poke_edit_data)
                 case "Personal":
                     poke_edit_data.personal_path = garc_path
                     poke_edit_data.personal = temp
                     poke_edit_data.personal_filename_length = len(temp[0])
-                    poke_edit_data = update_species_list(poke_edit_data)
+                    poke_edit_data = update_species_list(poke_edit_data, overwrite_from_default)
                 case "Levelup":
                     poke_edit_data.levelup_path = garc_path
                     poke_edit_data.levelup = temp
@@ -393,75 +549,91 @@ def rebuild_csv(poke_edit_data):
                 #the third byte is how many models that species has.
                 species_model_count.append(model_hex_map[4*x + 2])
     
-   
-    #reference the right master list
-    temp_master_list_csv = []
-    match poke_edit_data.game:
-        case 'XY':
-            temp_master_list_csv = xy_master_list_csv.copy()
-        case 'ORAS':
-            temp_master_list_csv = oras_master_list_csv.copy()
-        case 'SM':
-            temp_master_list_csv = oras_master_list_csv.copy()
-        case 'USUM':
-            temp_master_list_csv = usum_master_list_csv.copy()
-    
-
     #row 0 has the empty personal file, skip to next before first iteration
-    row_index = 0    
-    for current_base_species in range(poke_edit_data.max_species_index + 1):
+    row_index = 0
+    model_index = 0
+        
+    temp_personal_instance_garc = 0
+    temp_personal_pointer_garc = 0
+    
+    for current_base_species in range(1, poke_edit_data.max_species_index + 1):
         #skip the empty personal line
-        if(current_base_species != 0):
-            
-            #grab the rows from the loaded csv that match the currently loaded base species
-            species_indices_from_csv = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, current_base_species)
-            total_formes_csv = len(species_indices_from_csv)
-            first_forme_index_csv = poke_edit_data.master_list_csv[species_indices_from_csv[-1]][3]
-            
-            total_formes_game = 0
-            forme_index_game = 0
-            
-            #total number of formes of any kind in the default master list
-            total_formes_master = len(find_rows_with_column_matching(temp_master_list_csv, 2, current_base_species))
-            #total number of formes with models in the default master list
-            total_model_formes_master = total_formes_master - sum([x in find_rows_with_column_matching(temp_master_list_csv, 2, current_base_species) for x in poke_edit_data.modelless_formes])
+        #grab the rows from the loaded csv that match the currently loaded base species
+        species_indices_from_csv = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, current_base_species)
 
-            
-            with open(file_namer(poke_edit_data.personal_path, current_base_species, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
-                with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
-                    total_formes_game = personal_hex_map[0x20]
-                    forme_index_game = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
+        #grab the number of personal and model instances for the current Pokemon from the loaded csv
+        temp_personal_instance_csv = 0
+        temp_model_instance_csv = 0
+        
+        for row_index in species_indices_from_csv:
+            if(poke_edit_data.master_list_csv[row_index][3] != ''):
+                temp_personal_instance_csv += 1
+            if(poke_edit_data.master_list_csv[row_index][4] != ''):
+                temp_model_instance_csv += 1
 
-            #if the total number of formes in the CSV is less than or equal to the max of the forme count and the model count, the old stuff is in there first, stick that in
-            if(total_formes_csv <= max(total_formes_game, species_model_count[current_base_species - 1])):
-                for index in species_indices_from_csv:
-                    row_index += 1
-                    temp_csv_file.append(poke_edit_data.master_list_csv[index])
-                    temp_csv_file[index][4] = row_index
-                    #if this is an alt forme, update the personal index from the game file, then move to the next forme
-                    if(temp_csv_file[index][2] != temp_csv_file[index][3]):
-                        temp_csv_file[index][3] = forme_index_game
-                        forme_index_game += 1
-            else:
-                print('Formes for species ' + str(current_base_species) + ' have been removed. Please manually edit the CSV.')
-                return
-            
-            #now, if we have any extra stuff from the game file, let's load that
-            if(total_formes_csv < max(total_formes_game, species_model_count[current_base_species - 1])):
-            
-                #in this case, the user has added non-personal-file bearing alt formes, so basically gender-alternate models.
-                if(total_model_formes_master < species_model_count[current_base_species - 1] and species_model_count[current_base_species - 1] - total_model_formes_master > total_formes_game - total_formes_csv):
-                    print('Detected' + str(species_model_count[current_base_species - 1] - total_formes_game) + ' models added without personals attached. Please manually edit the CSV.')
+        #grab the number of personal files for this Pokemon from the GARC
+        with open(file_namer(poke_edit_data.personal_path, current_base_species, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+            with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
+                temp_personal_pointer_garc = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
+                
+                #if the pointer is 0 but the forme count is >1, then only 1 personal file
+                if(temp_personal_pointer_garc in {'0', '', 0, 0x0}):
+                    temp_personal_instance_garc = 0x1
                 else:
-                    for x in range(max(total_formes_game, species_model_count[current_base_species - 1]) - total_formes_csv):
-                        #for now assume that any added formes have a model attached
-                        if(not(forme_index_game in poke_edit_data.modelless_formes)):
-                            row_index += 1
-                        temp_csv_file.append([poke_edit_data.master_list_csv[first_forme_index_csv][0], x + total_formes_csv + 1, current_base_species, forme_index_game, row_index])
-                        forme_index_game += 1
-                        #['Venusaur', 'Mega',3,760,4]
-    #write egg line
-    temp_csv_file.append(['Egg', '','NA','',row_index + 1])
+                    temp_personal_instance_garc = personal_hex_map[0x20]
+                
+        
+        missing_personal_count = temp_personal_instance_garc - temp_personal_instance_csv
+        missing_model_count = species_model_count[current_base_species - 1] - temp_model_instance_csv
+        
+        if(missing_personal_count != 0 or missing_personal_count != 0):
+            print(poke_edit_data.master_list_csv[species_indices_from_csv[0]])
+            print(missing_personal_count, temp_personal_instance_garc, temp_personal_instance_csv)
+            print(missing_model_count, species_model_count[current_base_species - 1] , temp_model_instance_csv)
+
+
+        #just append the rows in the CSV
+        for row in species_indices_from_csv:
+            temp_csv_file.append(poke_edit_data.master_list_csv[row])
+            row_index += 1
+            #check for personal formes sharing model that haven't been fixed and don't write a model index number
+            if(not(temp_personal_instance_csv > temp_model_instance_csv)):
+                #update model index number
+                temp_csv_file[row][4] = row
+                model_index += 1
+                
+        #both the same, no changes here
+        if(missing_personal_count == 0 and missing_model_count == 0):
+            pass
+        #CSV has additions and deletions from game in both directions in either Model or Personal
+        elif(missing_personal_count < 0 or missing_model_count < 0):
+            print('Problem detected at row', row_index)
+            print('CSV has additons AND deletions compared to GARC. Please refresh the CSV and try again.')
+            return
+        #at least one of model and Personal have more entries. 
+        else:
+            rows_to_add = max(missing_personal_count, missing_model_count)
+            #get base species name
+            temp_name = poke_edit_data.master_list_csv[species_indices_from_csv[0]][0]
+            for x in range(rows_to_add):
+                
+                if(missing_personal_count > x):
+                    temp_forme_personal_location = temp_personal_pointer_garc + (temp_personal_instance_csv - 1) + x
+                #keep things in line if there's a model file without a personal
+                else:
+                    temp_forme_personal_location = ''
+                    temp_personal_pointer_garc -= 1
+                if(missing_model_count > x):
+                    temp_model_index = model_index
+                    model_index += 1
+                else:
+                    temp_model_index = ''
+                temp_csv_file.append([temp_name, temp_personal_instance_csv + x, current_base_species, temp_forme_personal_location, temp_model_index])
+                
+                row_index += 1
+
+    #drop in the egg model last
+    temp_csv_file.append(['Egg', '','NA','',model_index])
     poke_edit_data.master_list_csv = temp_csv_file.copy()
     return(poke_edit_data)
              
@@ -475,95 +647,101 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
     temp_model_source_list = []
 
 
-    try:
-        with open(poke_edit_data.csv_pokemon_list_path, newline = '', encoding='utf-8-sig') as csvfile:
-            reader_head = csv.reader(csvfile, dialect='excel', delimiter=',')
+    #try:
+    with open(poke_edit_data.csv_pokemon_list_path, newline = '', encoding='utf-8-sig') as csvfile:
+        reader_head = csv.reader(csvfile, dialect='excel', delimiter=',')
             
-            temp_forme_name = ''
+        temp_forme_name = ''
             
-            #load csv into an array, skip first line because it's just the header
-            loaded_csv_file = []
-            iter_temp = 0
-            for row in reader_head:
-                if(iter_temp == 0):
-                    iter_temp += 1
-                else:
-                    loaded_csv_file.append(row)
-            #We need to find the max personal file index since that's not in order with the structure of the models
-            personal_max_temp = max_of_column(loaded_csv_file, 1)
-
-            #and now give the formes_list table the right size:
-            #has max index + 1 entries, because there is both a 0th and max indexth entry                
-            for x in range(personal_max_temp+1):
-                temp_master_formes_list.append('')
-
-            for data_rows in loaded_csv_file:
-                #build the underlying species, forme, and model file lists
-                #if personal index is the same as the nat dex number, is the base forme, so append the species name
-                if(data_rows[0].isdigit() and data_rows[1].isdigit() and data_rows[0] == data_rows[1]):
-                    temp_base_species_list.append(data_rows[3])
-                #if the forme-name slot is non-empty, will be used at least once following this, if it empty need to not have dangling seperator
-                if(data_rows[4] != ""):
-                    temp_forme_name = data_rows[3] + " - " + data_rows[4]
-                else:
-                    temp_forme_name = data_rows[3]
-
-                #if the personal index is NOT (empty or NA), then write the species name + forme name to the formes list
-                if(not(data_rows[1] in {"", "NA"})):
-                    temp_master_formes_list[int(data_rows[1])]= temp_forme_name
-                    
-                #if the model index is NOT empty or NA, then write the species name + forme name to the formes list. This should only happen for the very first entry, so report an error if that happens
-                if(not(data_rows[2] in {"", "NA"})):
-                    temp_model_source_list.append(temp_forme_name)
-                elif(data_rows[2].isdigit() and int(data_rows[2]) > 0):
-                    print('Entry without unique model file detected at Species Index-Personal Index-Name:' + data_rows[0] + '-' + data_rows[1] + '-' + data_rows[3] + '-' + data_rows[4])
-                #print(data_rows)
-                
-            #series of checks to see if it is the case that the loaded CSV arrays are shorter than the default-created ones (in which case assume we just created/refreshed the CSV, or loaded the wrong thing), or is longer (in which case the CSV has more entries than the game files and something is terribly wrong)
-            #only do this if we loaded, not if we just insert a Pokemon        
-
-            if(not(just_wrote)):
-                    species_check = len(temp_base_species_list) - len(poke_edit_data.base_species_list)
-                    forme_check = len(temp_master_formes_list) - len(poke_edit_data.master_formes_list)
-                    model_check = len(temp_model_source_list) - len(poke_edit_data.model_source_list)
-
-                    if(species_check < 0):
-                        print('The loaded CSV has fewer Pokemon base species than your game files. Something is very probably wrong unless you have successfully added new species to the game (in which case please submit a bug report so I can update). The Pokemon base species entries read from the CSV have NOT been loaded.')
-                        return(poke_edit_data)
-                    elif(species_check > 0):
-                        print('The loaded CSV has more Pokemon base species than your game files. Something is very probably wrong. Please recheck your game files, the csv itself, and your settings. The Pokemon base species entries read from the CSV have NOT been loaded.')
-                        return(poke_edit_data)
-                    elif(species_check == 0):
-                        print('Loading Pokemon Species List from CSV')
-                        poke_edit_data.base_species_list = temp_base_species_list.copy()
-            
-                    if(forme_check < 0):
-                        print('The loaded CSV has fewer total Forme entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will rebuild CSV file in memory from game files, if this is wrong, please exit without saving')
-                        return(rebuild_csv(poke_edit_data))
-
-                    elif(forme_check > 0):
-                        print('The loaded CSV has more total Forme entries than your game files. Something is wrong. Please double-check your file selections and settings. The Forme entries read from the CSV have NOT been loaded.')
-                        return(poke_edit_data)
-                    if(forme_check == 0):
-                        print('Loading Formes List from CSV')
-                        poke_edit_data.master_formes_list = temp_master_formes_list.copy()
-            
-                    if(model_check < 0):
-                        print('The loaded CSV has fewer total Model entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will rebuild CSV file in memory from game files, if this is wrong, please exit without saving')
-                        return(rebuild_csv(poke_edit_data))
-                    elif(model_check > 0):
-                        print('The loaded CSV has more total Model entries than your game files. Something is wrong. Please double-check your file selections and settings. The Model entries read from the CSV have NOT been loaded.')
-                    if(model_check == 0):
-                        print('Loading Model List from CSV')
-                        poke_edit_data.model_source_list = temp_model_source_list.copy()
+        #load csv into an array, skip first line because it's just the header
+        loaded_csv_file = []
+        iter_temp = 0
+        for row in reader_head:
+            if(iter_temp == 0):
+                iter_temp += 1
             else:
+                loaded_csv_file.append(row)
+        #We need to find the max personal file index since that's not in order with the structure of the models
+        personal_max_temp = max_of_column(loaded_csv_file, 1)
+        #and now give the formes_list table the right size:
+        #has max index + 1 entries, because there is both a 0th and max indexth entry                
+        for x in range(personal_max_temp+1):
+            temp_master_formes_list.append('')
+                
+        for data_rows in loaded_csv_file:
+                
+            #build the underlying species, forme, and model file lists
+            #if personal index is the same as the nat dex number, is the base forme, so append the species name
+            if(data_rows[0].isdigit() and data_rows[1].isdigit() and data_rows[0] == data_rows[1]):
+                temp_base_species_list.append(data_rows[3])
+            #if the forme-name slot is non-empty, will be used at least once following this, if it empty need to not have dangling seperator
+            if(data_rows[4] != ""):
+                temp_forme_name = data_rows[3] + " - " + data_rows[4]
+            else:
+                temp_forme_name = data_rows[3]
+
+            #if the personal index is NOT (empty or NA), then write the species name + forme name to the formes list
+            if(not(data_rows[1] in {"", "NA"})):
+                temp_master_formes_list[int(data_rows[1])]= temp_forme_name
+                    
+            #if the model index is NOT empty or NA, then write the species name + forme name to the formes list. This should only happen for the very first entry, so report an error if that happens
+            if(not(data_rows[2] in {"", "NA"})):
+                temp_model_source_list.append(temp_forme_name)
+            elif(data_rows[2].isdigit() and int(data_rows[2]) > 0):
+                print('Entry without unique model file detected at Species Index-Personal Index-Name:' + data_rows[0] + '-' + data_rows[1] + '-' + data_rows[3] + '-' + data_rows[4])
+            #print(data_rows)
+    #series of checks to see if it is the case that the loaded CSV arrays are shorter than the default-created ones (in which case assume we just created/refreshed the CSV, or loaded the wrong thing), or is longer (in which case the CSV has more entries than the game files and something is terribly wrong)
+    #only do this if we loaded, not if we just insert a Pokemon        
+    
+    #looks for missing models, adds them in
+    if(poke_edit_data.modelless_exists):
+        poke_edit_data = add_missing_models(poke_edit_data)
+        poke_edit_data.modelless_exists = False
+        
+    if(not(just_wrote)):
+            species_check = len(temp_base_species_list) - len(poke_edit_data.base_species_list)
+            forme_check = len(temp_master_formes_list) - len(poke_edit_data.master_formes_list)
+            model_check = len(temp_model_source_list) - len(poke_edit_data.model_source_list)
+
+            if(species_check < 0):
+                print('The loaded CSV has fewer Pokemon base species than your game files. Something is very probably wrong unless you have successfully added new species to the game (in which case please submit a bug report so I can update). The Pokemon base species entries read from the CSV have NOT been loaded.')
+                return(poke_edit_data)
+            elif(species_check > 0):
+                print('The loaded CSV has more Pokemon base species than your game files. Something is very probably wrong. Please recheck your game files, the csv itself, and your settings. The Pokemon base species entries read from the CSV have NOT been loaded.')
+                return(poke_edit_data)
+            elif(species_check == 0):
+                print('Loading Pokemon Species List from CSV')
                 poke_edit_data.base_species_list = temp_base_species_list.copy()
+            
+            if(forme_check < 0):
+                print('The loaded CSV has fewer Forme entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will rebuild CSV file in memory from game files, if this is wrong, please exit without saving')
+                poke_edit_data = rebuild_csv(poke_edit_data)
+
+            elif(forme_check > 0):
+                print('The loaded CSV has more total Forme entries than your game files. Something is wrong. Please double-check your file selections and settings. The Forme entries read from the CSV have NOT been loaded.')
+                return(poke_edit_data)
+                    
+            if(forme_check == 0):
+                print('Loading Formes List from CSV')
                 poke_edit_data.master_formes_list = temp_master_formes_list.copy()
+            
+            if(model_check < 0):
+                print('The loaded CSV has fewer total Model entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will attempt to update.')
+                poke_edit_data = rebuild_csv(poke_edit_data)
+            elif(model_check > 0):
+                print('The loaded CSV has more total Model entries than your game files. Something is wrong. Please double-check your file selections and settings. The Model entries read from the CSV have NOT been loaded.')
+            if(model_check == 0):
+                print('Loading Model List from CSV')
                 poke_edit_data.model_source_list = temp_model_source_list.copy()
-    except:
+    else:
+        poke_edit_data.base_species_list = temp_base_species_list.copy()
+        poke_edit_data.master_formes_list = temp_master_formes_list.copy()
+        poke_edit_data.model_source_list = temp_model_source_list.copy()
+    '''except:
         print('CSV file ' + poke_edit_data.csv_pokemon_list_path + ' not found (if no text is present between "file" and "found", filename is empty).')
         poke_edit_data.csv_pokemon_list_path = askopenfilename(title='Select Pokemon Names and Files CSV')
-        poke_edit_data= load_names_from_CSV(poke_edit_data, just_wrote)
+        poke_edit_data = load_names_from_CSV(poke_edit_data, just_wrote)'''
+    
     return(poke_edit_data)
 
 
@@ -601,8 +779,8 @@ def create_refresh_CSV(poke_edit_data, target, gameassert):
                 poke_edit_data.master_list_csv = oras_master_list_csv.copy()
             case 'USUM':
                 poke_edit_data.master_list_csv = usum_master_list_csv.copy()
-        if():
-            poke_edit_data = rebuild_csv(poke_edit_data)
+        user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files')
+        poke_edit_data = load_names_from_CSV(poke_edit_data)
     except:
         print('No file selected')
     return(poke_edit_data)
@@ -614,8 +792,12 @@ def write_CSV(poke_edit_data, csv_path = ''):
         csv_path = poke_edit_data.csv_pokemon_list_path
     else:
         poke_edit_data.csv_pokemon_list_path = csv_path
-    
+    print(csv_path)
     #try to open filepath
+    
+    #print('after called write')
+    #for pokemon_instance in poke_edit_data.master_list_csv:
+    #    print(pokemon_instance)
     try:
         with open(csv_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
             writer_head = csv.writer(csvfile, dialect='excel', delimiter=',')
@@ -643,10 +825,16 @@ def write_CSV(poke_edit_data, csv_path = ''):
                 if(enum == 0):
                     writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]])
                 else:
+                    #print([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)])
                     writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)])
     #don't do anything and proceed as usual if none exists, print error message
     except:
         print('Selected CSV file is open in another program. Please close it and try again')
+    
+    
+    #print('after write')
+    #for pokemon_instance in poke_edit_data.master_list_csv:
+    #    print(pokemon_instance)
     return(poke_edit_data)
 
 def user_prompt_write_CSV(poke_edit_data, target):
@@ -667,8 +855,8 @@ def load_game_cfg(poke_edit_data):
     2 = Level
     3 = Evolution
     4 = Model/texture
-    5 = Sprites_1
-    6 = Sprites_2
+    5 = list of modelles formes
+    6 = all clear bool
     7 = portrait_1
     8 = portrait_2
     9 = extension
@@ -678,58 +866,60 @@ def load_game_cfg(poke_edit_data):
     
     cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','','','',"Extension","Max Species Index", "Names and Model File List CSV Path"]
  
-    try:
-        with open(game_cfg_path, "r") as cfg:
-            cfg_array = [line.rstrip() for line in cfg]
-        poke_edit_data.game = cfg_array[0]
-        poke_edit_data.personal_path = cfg_array[1]
-        poke_edit_data.levelup_path = cfg_array[2]
-        poke_edit_data.evolution_path = cfg_array[3]
-        poke_edit_data.model_path = cfg_array[4]
-        poke_edit_data.modelless_formes = cfg_array[5]
-        #evolution = cfg_array[6]
-        #evolution = cfg_array[7]
-        #evolution = cfg_array[8]
-        poke_edit_data.extracted_extension = cfg_array[9]
-        poke_edit_data.max_species_index = cfg_array[10]
-        poke_edit_data.csv_pokemon_list_path = cfg_array[11]
+    #try:
+    with open(game_cfg_path, "r") as cfg:
+        cfg_array = [line.rstrip() for line in cfg]
+    poke_edit_data.game = cfg_array[0]
+    poke_edit_data.personal_path = cfg_array[1]
+    poke_edit_data.levelup_path = cfg_array[2]
+    poke_edit_data.evolution_path = cfg_array[3]
+    poke_edit_data.model_path = cfg_array[4]
+    # = cfg_array[5]
+    poke_edit_data.modelless_exists = cfg_array[6]
+    #evolution = cfg_array[7]
+    #evolution = cfg_array[8]
+    poke_edit_data.extracted_extension = cfg_array[9]
+    poke_edit_data.max_species_index = cfg_array[10]
+    poke_edit_data.csv_pokemon_list_path = cfg_array[11]
     
-        if(poke_edit_data.game in {'XY', 'ORAS'}):
-            poke_edit_data.evolution_table_length = 0x30
-            poke_edit_data.personal_table_length = 0x50
-        elif(poke_edit_data.game in {'SM', 'USUM'}):
-            poke_edit_data.evolution_table_length = 0x40
-            poke_edit_data.personal_table_length = 0x54
-        else:
-            print('Warning: Game not correctly set in cfg, ensure a game is selected, then reload any GARC')
+    if(poke_edit_data.game in {'XY', 'ORAS'}):
+        poke_edit_data.evolution_table_length = 0x30
+        poke_edit_data.personal_table_length = 0x50
+    elif(poke_edit_data.game in {'SM', 'USUM'}):
+        poke_edit_data.evolution_table_length = 0x40
+        poke_edit_data.personal_table_length = 0x54
+    else:
+        print('Warning: Game not correctly set in cfg, ensure a game is selected, then reload any GARC')
         
 
-        print('Data loaded as follows:')
-        for x in range(len(cfg_desc)):
-            if(cfg_desc[x] != ''):
-                print(cfg_desc[x] + ': ' + str(cfg_array[x]))
-        print('\n')
+    print('Data loaded as follows:')
+    for x in range(len(cfg_desc)):
+        if(cfg_desc[x] != ''):
+            print(cfg_desc[x] + ': ' + str(cfg_array[x]))
+    print('\n')
 
-        poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
-        poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
-        poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
-        poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
+    poke_edit_data = load_names_from_CSV(poke_edit_data)
         
-        print('\n')
-        print("Number of Species:", len(poke_edit_data.base_species_list) - 1, "(not including the blank entry)")
-        print("Number of Personal Entries:", len(poke_edit_data.master_formes_list) - 1, "(not including the blank entry)")
-        print("Number of Model Entries:", len(poke_edit_data.model_source_list))
-    except:
-        print('Selection missing or invalid')
+    print('\n')
+    print("Number of Species:", len(poke_edit_data.base_species_list) - 1, "(not including the blank entry)")
+    print("Number of Personal Entries:", len(poke_edit_data.master_formes_list) - 1, "(not including the blank entry)")
+    print("Number of Model Entries:", len(poke_edit_data.model_source_list))
+    '''except:
+        print('Selection missing or invalid')'''
 
 
     return(poke_edit_data)
     
-def save_game_cfg(poke_edit_data, game_set):
+def save_game_cfg(poke_edit_data, game_set = ''):
  
     game_cfg_path = asksaveasfilename(title='Select location to save cfg file', defaultextension='.cfg',filetypes= [('config','.cfg')])
     
-    poke_edit_data.game = game_set
+    if(game_set != ''):
+        poke_edit_data.game = game_set
     
     cfg_array = []
     
@@ -740,8 +930,8 @@ def save_game_cfg(poke_edit_data, game_set):
             cfg.write(poke_edit_data.levelup_path + '\n')
             cfg.write(poke_edit_data.evolution_path + '\n')
             cfg.write(poke_edit_data.model_path + '\n')
-            cfg.write(poke_edit_data.modelless_formes)
-            cfg.write('\n') #evolution = cfg_array[6]
+            cfg.write('\n')
+            cfg.write(poke_edit_data.modelless_exists +'\n')
             cfg.write('\n')#evolution = cfg_array[7]
             cfg.write('\n')#evolution = cfg_array[8]
             cfg.write(poke_edit_data.extracted_extension + '\n')

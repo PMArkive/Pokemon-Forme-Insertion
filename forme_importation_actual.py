@@ -6,6 +6,7 @@ import errno
 from my_constants import *
 from file_handling import *
 
+#handles actual editing and moving of files for forme insertion
 def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, existing_formes_array, def_model, total_alt_formes, enough_room):
     
     total_formes = total_alt_formes + 1
@@ -147,7 +148,10 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
                 
                 #move file (# files per model)*(# new formes added) numbers forward
                 os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
-                #print(file_number, ': ', file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), ' to ', file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                       
+                #update the model file list. Otherwise if we do more than 1 forme it will miss the last files and crash
+                poke_edit_data.model.append(file_number + model_file_count*new_forme_count)
+                
             #print(model_start_file, model_dest_file)
             #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
             for x in range(0, new_forme_count):
@@ -180,8 +184,9 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             for index in range(0, poke_edit_data.max_species_index):
                 model_hex_map[4*index + 0], model_hex_map[4*index + 1] = little_endian_chunks(model_count)
                 model_count += model_hex_map[4*index + 2]
-             
-            #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
+            
+          
+                #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
             #This section starts at poke_edit_data.max_species_index*4
             
             
@@ -204,27 +209,30 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             print('Model header updated')
     
     print('New formes initialized!' + '\n')
+    
 
     #Now update the csv table. It might be perhaps slightly more efficient to do each bit as it happens above, but this code is easier to follow
     #first get the row number of all instances of the current species
     working_indices = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, int(base_form_index))
     
+    #print('working indices, ', working_indices)
     
     #First, if we moved existing alt formes, need to update their Personal Index
-    for offset, csv_index in enumerate(working_indices):
+    temp_offset = 0
+    for csv_index in working_indices:
         if(poke_edit_data.master_list_csv[csv_index][3] in existing_formes_array):
-            poke_edit_data.master_list_csv[csv_index][3] = start_location + offset
+            poke_edit_data.master_list_csv[csv_index][3] = start_location + temp_offset
+            temp_offset += 1
+            #print(poke_edit_data.master_list_csv[csv_index])
     
     #grab the base species name since we'll be using that at least once
     base_species_name = poke_edit_data.master_list_csv[working_indices[0]][0]
     
     #and the last model index number (as we inserted the models after that)
-    model_index_start = poke_edit_data.master_list_csv[working_indices[-1]][4]
+    #model_index_start = poke_edit_data.master_list_csv[working_indices[-1]][4]
     
     #index we start inserting the new rows from
     csv_insertion_point = max(working_indices) + 1
-    
-    print(csv_insertion_point)
 
     #Second, we insert the new rows
     #base species index, personal file index, model index, species name, forme name
@@ -232,14 +240,16 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
         #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
         #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
         poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, new_offset_start + offset + 1, base_form_index, start_location + new_offset_start + offset, 0])
-        
+    
+
+    #modelless_skip_count = 0
     #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
-    for offset in range(csv_insertion_point, len(poke_edit_data.master_list_csv)):
+    for offset in range(1, len(poke_edit_data.master_list_csv)):
         
-        if(poke_edit_data.master_list_csv[offset][3] in poke_edit_data.modelless_formes):
-                csv_insertion_point += 1
-                continue
-        poke_edit_data.master_list_csv[offset][4] = model_index_start + offset - csv_insertion_point + 1
+        #if(str(poke_edit_data.master_list_csv[offset][3]) in poke_edit_data.modelless_formes):
+        #        modelless_skip_count += 1
+        #        continue
+        poke_edit_data.master_list_csv[offset][4] = offset - 1 #- modelless_skip_count
         
     try:
         poke_edit_data = write_CSV(poke_edit_data)
@@ -247,25 +257,24 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
         print('Please close your Pokemon Names and Files CSV if it is open')
         poke_edit_data.csv_pokemon_list_path = askopenfilename(title='Select Pokemon Names and Files CSV')
         write_CSV(poke_edit_data)
-        
-    poke_edit_data = load_names_from_CSV(poke_edit_data, True)
-    
     print('Pokemon Names and Files CSV updated' + '\n')
+        
+    #poke_edit_data = load_names_from_CSV(poke_edit_data, True)
+    
+    check_temp = poke_edit_data.master_list_csv.copy()
+    
     #refresh filenames
     poke_edit_data.run_model_later = False    
-    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
+    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game, False)
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
-    
     print('Internal tables updated with changes' + '\n' + '\n')
-    
+                         
 
     return(poke_edit_data)
- 
 
-    
- 
+#sets some stuff up for forme insertion, final checks 
 def add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, def_model):
 
     enough_room = False

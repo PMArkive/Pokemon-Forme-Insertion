@@ -56,7 +56,7 @@ def pre_check(poke_edit_data):
     return(poke_edit_data)
 
 root = Tk()
-root.title('Pokemon Forme Insertion')
+root.title('Pokemon Forme Insertion V.2.0')
 root.geometry('950x300')
 root.iconbitmap("Mewtwo-tefillin-head.ico")
 

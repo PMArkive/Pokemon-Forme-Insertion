@@ -676,16 +676,11 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
     try:
         with open(poke_edit_data.csv_pokemon_list_path, newline = '', encoding='utf-8-sig') as csvfile:
             reader_head = csv.reader(csvfile, dialect='excel', delimiter=',')
-            
-            temp_forme_name = ''
-            
-            #load csv into an array, skip first line because it's just the header
+            next(reader_head) # skip the header
+
+            #load csv into an array
             loaded_csv_file = []
-            iter_temp = 0
             for row in reader_head:
-                if(iter_temp == 0):
-                    iter_temp += 1
-                else:
                     loaded_csv_file.append(row)
             #We need to find the max personal file index since that's not in order with the structure of the models
             personal_max_temp = max_of_column(loaded_csv_file, 1)
@@ -876,9 +871,7 @@ def user_prompt_write_CSV(poke_edit_data, target):
 def load_game_cfg(poke_edit_data):
     
     game_cfg_path = askopenfilename(title='Select cfg file', defaultextension='.cfg',filetypes= [('config','.cfg')])
-    
-    cfg_array = []
-    
+
     '''read all the lines
     0 = game
     1 = Personal

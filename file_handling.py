@@ -1,20 +1,14 @@
-from ast import excepthandler
-from lib2to3.fixes.fix_idioms import TYPE
-from re import A, M
 import shutil
-import os
-import mmap
-from sqlite3 import Row
-from string import printable
-import sys
-import errno
-from time import sleep
-from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
-from tokenize import maybe
-from my_constants import *
-from numpy import *
 import csv
+import errno
+import mmap
+import os
+import shutil
+from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 
+from numpy import *
+
+from my_constants import *
 
 
 #pull a given non-empty column from the given table and returns the max
@@ -217,7 +211,7 @@ def add_missing_models(poke_edit_data):
     #print(personal_forme_count)
     with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
-            model_hex_map.flush
+            model_hex_map.flush()
             
             #look for species with fewer formes than personal files. This 
             for species_index, current_personal_forme_count in reversed(list(enumerate(personal_forme_count))):

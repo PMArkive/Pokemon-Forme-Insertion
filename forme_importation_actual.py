@@ -33,11 +33,11 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             #zero out old personal block
             with open(file_namer(poke_edit_data.personal_path, pokemon, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
                 with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
-                    personal_hex_map.flush
+                    personal_hex_map.flush()
                     personal_hex_map.resize(poke_edit_data.personal_table_length)
                     for x in range(0, poke_edit_data.personal_table_length):
                         personal_hex_map[x] = 0x00
-                    personal_hex_map.flush
+                    personal_hex_map.flush()
         
             #copy evolution file to new location
             shutil.copy(file_namer(poke_edit_data.evolution_path, pokemon, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, start_location + offset, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension))
@@ -45,11 +45,11 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             #zero out old evolution block
             with open(file_namer(poke_edit_data.evolution_path, pokemon, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
                 with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as evolution_hex_map:
-                    evolution_hex_map.flush
+                    evolution_hex_map.flush()
 
                     for x in range(0, poke_edit_data.evolution_table_length):
                         evolution_hex_map[x] = 0x00
-                    evolution_hex_map.flush
+                    evolution_hex_map.flush()
         
             #copy levelup file to new location
             shutil.copy(file_namer(poke_edit_data.levelup_path, pokemon, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.levelup_path, start_location + offset, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension))
@@ -57,7 +57,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
             #write Tackle at Level 1 to old location (avoid pk3ds crash)
             with open(file_namer(poke_edit_data.levelup_path, pokemon, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
                 with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as levelup_hex_map:
-                    levelup_hex_map.flush
+                    levelup_hex_map.flush()
                     levelup_hex_map.resize(0x08)
                     levelup_hex_map[0] = 0xED
                     levelup_hex_map[1] = 0x00
@@ -65,7 +65,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
                     levelup_hex_map[3] = 0x00
                     for x in range(4,0x08):
                         levelup_hex_map[x] = 0xFF
-                    levelup_hex_map.flush
+                    levelup_hex_map.flush()
                 
     #now initialize the newly added formes
     
@@ -100,7 +100,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
     
     with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
-            model_hex_map.flush
+            model_hex_map.flush()
             #first need to go to the four bytes for that *species*, which start at (index - 1)*4
             #the fourth byte, (index - 1)*4 + 3, is 0x1 when no formes, 0x3 when only alternate-gender formes, 0x7 when both
             #the third byte is how many models that species has.
@@ -215,7 +215,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, start_location, new_f
                 model_hex_map[poke_edit_data.max_species_index*4 + total_previous_models*2 + offset] = 0x00
             
             #write model file back
-            model_hex_map.flush
+            model_hex_map.flush()
             print('Model header updated')
     
     print('New formes initialized!' + '\n')

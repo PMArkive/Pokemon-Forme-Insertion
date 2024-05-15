@@ -116,10 +116,13 @@ def update(data, input_listbox):
 
 #update "Select Species" based on double-clicking in list
 def fillout_base_species(e):
-    selection = poke_edit_data.current_base_species_list[base_species_listbox.curselection()[0]]
-    base_species_entry.delete(0, END)
-    base_species_entry.insert(END, selection)
-    check_base_species(e)
+    try:
+        selection = poke_edit_data.current_base_species_list[base_species_listbox.curselection()[0]]
+        base_species_entry.delete(0, END)
+        base_species_entry.insert(END, selection)
+        check_base_species(e)
+    except Exception as error:
+        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
 
 #update search list for base species
 def check_base_species(e):
@@ -138,10 +141,13 @@ def check_base_species(e):
 
 #update "Custom Personal" based on double-clicking in list
 def fillout_personal(e):
-    selection = poke_edit_data.current_personal_list[personal_listbox.curselection()[0]]
-    personal_entry.delete(0, END)
-    personal_entry.insert(END, selection)
-    check_personal(e)
+    try:
+        selection = poke_edit_data.current_personal_list[personal_listbox.curselection()[0]]
+        personal_entry.delete(0, END)
+        personal_entry.insert(END, selection)
+        check_personal(e)
+    except Exception as error:
+        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
     
 #update listbox for personal source
 def check_personal(e):
@@ -159,10 +165,13 @@ def check_personal(e):
 
 #update "Custom Levelup" based on double-clicking in list
 def fillout_levelup(e):
-    selection = poke_edit_data.current_levelup_list[levelup_listbox.curselection()[0]]
-    levelup_entry.delete(0, END)
-    levelup_entry.insert(END, selection)
-    check_levelup(e)
+    try:    
+        selection = poke_edit_data.current_levelup_list[levelup_listbox.curselection()[0]]
+        levelup_entry.delete(0, END)
+        levelup_entry.insert(END, selection)
+        check_levelup(e)
+    except Exception as error:
+        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
     
 #update listbox for levelup source
 def check_levelup(e):
@@ -180,10 +189,13 @@ def check_levelup(e):
 
 #update "Custom Evolution" based on double-clicking in list
 def fillout_evolution(e):
-    selection = poke_edit_data.current_evolution_list[evolution_listbox.curselection()[0]]
-    evolution_entry.delete(0, END)
-    evolution_entry.insert(END, selection)
-    check_evolution(e)
+    try:
+        selection = poke_edit_data.current_evolution_list[evolution_listbox.curselection()[0]]
+        evolution_entry.delete(0, END)
+        evolution_entry.insert(END, selection)
+        check_evolution(e)
+    except Exception as error:
+        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
 
 #update listbox for evolution source
 def check_evolution(e):
@@ -201,10 +213,13 @@ def check_evolution(e):
 
 #update "Custom Model" based on double-clicking in list
 def fillout_model(e):
-    selection = poke_edit_data.current_model_source_list[model_listbox.curselection()[0]]
-    model_entry.delete(0, END)
-    model_entry.insert(END, selection)
-    check_model(e)
+    try:    
+        selection = poke_edit_data.current_model_source_list[model_listbox.curselection()[0]]
+        model_entry.delete(0, END)
+        model_entry.insert(END, selection)
+        check_model(e)
+    except Exception as error:
+        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
 
 #update listbox for model source
 def check_model(e):

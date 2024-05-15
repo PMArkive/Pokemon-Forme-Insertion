@@ -213,13 +213,14 @@ def check_evolution(e):
 
 #update "Custom Model" based on double-clicking in list
 def fillout_model(e):
-    try:    
+    try:
         selection = poke_edit_data.current_model_source_list[model_listbox.curselection()[0]]
         model_entry.delete(0, END)
         model_entry.insert(END, selection)
-        check_model(e)
+        check_model
     except Exception as error:
         print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
+ 
 
 #update listbox for model source
 def check_model(e):

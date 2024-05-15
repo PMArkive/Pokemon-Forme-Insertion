@@ -821,7 +821,7 @@ def create_refresh_CSV(poke_edit_data, target, gameassert):
 def write_CSV(poke_edit_data, csv_path = ''):
 
     #use saved config path if nothing set
-    if csv_path == '':
+    if(csv_path == ''):
         csv_path = poke_edit_data.csv_pokemon_list_path
     else:
         poke_edit_data.csv_pokemon_list_path = csv_path

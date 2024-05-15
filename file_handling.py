@@ -5,7 +5,6 @@ import mmap
 import os
 import shutil
 from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
-
 from numpy import *
 
 from my_constants import *

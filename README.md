@@ -39,3 +39,6 @@ Use Instructions:
 6) Load Pk3ds and confirm that the formes are properly inserted. If so, you may now edit the new formes as desired.
 
 7) The new model files (8 (gen VI) or 9 (gen VII) files) will be inserted after every other existing files for that species. The model files are tracked in the generated CSV file.
+
+
+A tutorial can be found at https://youtu.be/gu5JrxL3v4g

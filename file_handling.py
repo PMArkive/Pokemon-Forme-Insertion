@@ -365,7 +365,7 @@ def add_missing_models(poke_edit_data):
 
     return(poke_edit_data)
 
-def update_species_list(poke_edit_data, overwrite_from_default = True):
+def update_species_list(poke_edit_data, overwrite_from_default = False):
     
     if(overwrite_from_default):
         print('Initializing default Species list')

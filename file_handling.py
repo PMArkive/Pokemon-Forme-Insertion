@@ -128,9 +128,90 @@ def concatenate_bin_files(folder_path):
                     data = file.read()
                     output_stream.write(data)
     print('New compilation file created')
+    
+    return
 
+#Sorts Forme file order of Personal, Evolution, and Levelup Garc folders in order to allow for new formes of existing multi-formed Pokemon to be added
+def resort_file_structure(poke_edit_data):
+    
+    forme_location_reference_array = []
+    order_of_formes_iter = 0
+    
+    print("Preparing to rebuild Forme file order")
+    
+    #build table for sorting
+    for row_number, row in enumerate(poke_edit_data.master_list_csv):
+        #checks to see if alternate forme with own data (so has personal file location after max species index)
+        if(row[3] > row[2]):
+            
+            #new temp filename
+            temp_file_name = 't' + str(order_of_formes_iter)
 
+            #create entry in array row_number of csv, species index, forme personal index, and the temporary filename
+            forme_location_reference_array.append([row_number, row[2], row[3], temp_file_name])
+            
+            #increment forme order
+            order_of_formes_iter += 1
+            
+            #rename the Personal file to temporary name
+            os.rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.personal_path, temp_file_name + 1, poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension))
+            
+            #rename the Evolution file to temporary name
+            os.rename(file_namer(poke_edit_data.evolution_path, row[3], poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, temp_file_name + 1, poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension))
+              
+            #rename the Levelup file to temporary name
+            os.rename(file_namer(poke_edit_data.levelup_path, row[3], poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.levelup_path, temp_file_name + 1, poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension))
+            
+    #delete any files after max_species_index, if they exist. This clears the compilation file and any zero files from old versions
+    print("Removing old compilation file and zero files in range")
+    for file_number in range(poke_edit_data.max_species_index + 1, poke_edit_data.personal[-1] + 1):
+        silentremove(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension))
+        silentremove(file_namer(poke_edit_data.evolution_path, file_number, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension))
+        silentremove(file_namer(poke_edit_data.levelup_path, file_number, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension))
 
+    #iterate through the table of formes we built. rename each file starting in order from max_species_index + 1, and update the pointers in each (and the base species if it's the first instance).
+    
+    forme_file_number = poke_edit_data.max_species_index
+    new_pointer = 0
+    last_row_species = 0
+
+    for sort_array_row_number, sort_array_row in enumerate(forme_location_reference_array):
+        #increment forme file number
+        forme_file_number += 1
+        
+        #update pointer if this is the first instance of a forme of this species, then edit the species (forme 0) personal file with new pointer
+        if(last_row_species > sort_array_row[1]):
+            new_pointer = forme_file_number
+            #update pointer in species personal file
+            poke_edit_data = personal_file_update(poke_edit_data, sort_array_row[1], -1, new_pointer)
+            #update last species to current species
+            last_row_species = sort_array_row[1]
+        elif(last_row_species < sort_array_row[1]):
+            print('Something is horribly wrong, it thinks that your base species are out of order')
+            return
+
+        #rename the Personal file to new name
+        os.rename(file_namer(poke_edit_data.personal_path, sort_array_row[3], poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.personal_path, forme_file_number, poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension))
+            
+        #rename the Evolution file to new name
+        os.rename(file_namer(poke_edit_data.evolution_path, sort_array_row[3], poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, forme_file_number, poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension))
+              
+        #rename the Levelup file to new name
+        os.rename(file_namer(poke_edit_data.levelup_path, sort_array_row[3], poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.levelup_path, forme_file_number, poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension))
+
+        #now update the forme's personal file pointer (waited until after move so filename would be nice lol)
+        poke_edit_data = personal_file_update(poke_edit_data, forme_file_number, -1, new_pointer)
+
+        #update CSV
+        poke_edit_data.master_list_csv[sort_array_row[0]][3] = forme_file_number
+
+    #rebuild personal compilation file
+    concatenate_bin_files(poke_edit_data.personal_path)
+
+    #update species list
+    poke_edit_data = update_species_list(poke_edit_data)
+
+    return(poke_edit_data)
 
 
 def update_model_list(poke_edit_data):

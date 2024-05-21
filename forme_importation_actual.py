@@ -29,7 +29,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     total_formes = new_forme_count
     
     print('Updating existing files for species ' + str(base_form_index))
-    with open(file_namer(poke_edit_data.personal_path, base_form_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.personal_path, base_form_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
             
             #Get the new total number of formes
@@ -54,23 +54,23 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     #now initialize the newly added formes
 
     #delete the old compilation file if it's there
-    if(os.path.getsize(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension)) > 84):
-        silentremove(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension)) 
+    if(os.path.getsize(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data)) > 84):
+        silentremove(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data)) 
     
     for offset in range(0, new_forme_count):
         #user will have specified which existing Forme to copy from
         
         #copy source personal file to new location
-        shutil.copy(file_namer(poke_edit_data.personal_path, personal_source_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.personal_path, start_location + offset, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension))
+        shutil.copy(file_namer(poke_edit_data.personal_path, personal_source_index, poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, start_location + offset, poke_edit_data.personal_filename_length, poke_edit_data))
         
         #update new forme to have appropriate offset and forme count
         personal_file_update(poke_edit_data, start_location + offset, total_formes, start_location)
        
         #copy evolution file to new location
-        shutil.copy(file_namer(poke_edit_data.evolution_path, evolution_source_index, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, start_location + offset, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension))
+        shutil.copy(file_namer(poke_edit_data.evolution_path, evolution_source_index, poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, start_location + offset, poke_edit_data.evolution_filename_length, poke_edit_data))
         
         #copy levelup file to new location
-        shutil.copy(file_namer(poke_edit_data.levelup_path, levelup_source_index, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.levelup_path, start_location + offset, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension))
+        shutil.copy(file_namer(poke_edit_data.levelup_path, levelup_source_index, poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, start_location + offset, poke_edit_data.levelup_filename_length, poke_edit_data))
 
     
     print("Initializing new model data")
@@ -80,7 +80,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     #first figure out which files we're copying
     total_previous_models = 0
     
-    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
             model_hex_map.flush()
             #first need to go to the four bytes for that *species*, which start at (index - 1)*4
@@ -129,7 +129,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                     break
                 
                 #move file (# files per model)*(# new formes added) numbers forward
-                os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data))
                        
                 #update the model file list. Otherwise if we do more than 1 forme it will miss the last files and crash
                 poke_edit_data.model.append(file_number + model_file_count*new_forme_count)
@@ -138,7 +138,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
             for x in range(0, new_forme_count):
                 for y in range(0, model_file_count):
-                    shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                    shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data))
             
             #reset the model filename list, since we added stuff to the end
             poke_edit_data.model = []

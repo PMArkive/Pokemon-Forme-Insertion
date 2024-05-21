@@ -40,6 +40,9 @@ def find_rows_with_column_matching(input_table, column_number, search_term):
 #streamline the file name-calling
 def file_namer(folder, index, length, extension):
     return(os.path.join(folder, str(index).zfill(length)) + extension)
+def file_namer(folder, index, length, poke_edit_data):
+    
+    return(os.path.join(folder, poke_edit_data.model_folder_prefix + str(index).zfill(length)) + poke_edit_data.extracted_extension)
 
 #removes file, exception thrown if not exist
 def silentremove(filename):
@@ -72,7 +75,7 @@ def little_endian_chunks(big_input):
 #updated target Personal file with new Forme Count and First Forme Pointer
 def personal_file_update(poke_edit_data, target_index, total_formes, start_location):
     #open target personal file
-    with open(file_namer(poke_edit_data.personal_path, target_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.personal_path, target_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
             personal_hex_map.flush()
             #print('about to write ', new_forme_count)
@@ -158,20 +161,20 @@ def resort_file_structure(poke_edit_data):
             order_of_formes_iter += 1
             
             #rename the Personal file to temporary name
-            os.rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.personal_path, temp_file_name + 1, poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension))
+            os.rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, temp_file_name, poke_edit_data.personal_filename_length + 1, poke_edit_data))
             
             #rename the Evolution file to temporary name
-            os.rename(file_namer(poke_edit_data.evolution_path, row[3], poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, temp_file_name + 1, poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension))
+            os.rename(file_namer(poke_edit_data.evolution_path, row[3], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, temp_file_name, poke_edit_data.evolution_filename_length + 1, poke_edit_data))
               
             #rename the Levelup file to temporary name
-            os.rename(file_namer(poke_edit_data.levelup_path, row[3], poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.levelup_path, temp_file_name + 1, poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension))
+            os.rename(file_namer(poke_edit_data.levelup_path, row[3], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, temp_file_name, poke_edit_data.levelup_filename_length + 1, poke_edit_data))
             
     #delete any files after max_species_index, if they exist. This clears the compilation file and any zero files from old versions
     print("Removing old compilation file and zero files in range")
     for file_number in range(poke_edit_data.max_species_index + 1, poke_edit_data.personal[-1] + 1):
-        silentremove(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension))
-        silentremove(file_namer(poke_edit_data.evolution_path, file_number, poke_edit_data.evolution_filename_length, poke_edit_data.extracted_extension))
-        silentremove(file_namer(poke_edit_data.levelup_path, file_number, poke_edit_data.levelup_filename_length, poke_edit_data.extracted_extension))
+        silentremove(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
+        silentremove(file_namer(poke_edit_data.evolution_path, file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
+        silentremove(file_namer(poke_edit_data.levelup_path, file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
 
     #iterate through the table of formes we built. rename each file starting in order from max_species_index + 1, and update the pointers in each (and the base species if it's the first instance).
     
@@ -179,7 +182,7 @@ def resort_file_structure(poke_edit_data):
     new_pointer = 0
     last_row_species = 0
 
-    for sort_array_row_number, sort_array_row in enumerate(forme_location_reference_array):
+    for sort_array_row in forme_location_reference_array:
         #increment forme file number
         forme_file_number += 1
         
@@ -195,13 +198,13 @@ def resort_file_structure(poke_edit_data):
             return
 
         #rename the Personal file to new name
-        os.rename(file_namer(poke_edit_data.personal_path, sort_array_row[3], poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.personal_path, forme_file_number, poke_edit_data.personal_filename_length + 1, poke_edit_data.extracted_extension))
+        os.rename(file_namer(poke_edit_data.personal_path, sort_array_row[3], poke_edit_data.personal_filename_length + 1, poke_edit_data), file_namer(poke_edit_data.personal_path, forme_file_number, poke_edit_data.personal_filename_length, poke_edit_data))
             
         #rename the Evolution file to new name
-        os.rename(file_namer(poke_edit_data.evolution_path, sort_array_row[3], poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.evolution_path, forme_file_number, poke_edit_data.evolution_filename_length + 1, poke_edit_data.extracted_extension))
+        os.rename(file_namer(poke_edit_data.evolution_path, sort_array_row[3], poke_edit_data.evolution_filename_length + 1, poke_edit_data), file_namer(poke_edit_data.evolution_path, forme_file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
               
         #rename the Levelup file to new name
-        os.rename(file_namer(poke_edit_data.levelup_path, sort_array_row[3], poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension), file_namer(poke_edit_data.levelup_path, forme_file_number, poke_edit_data.levelup_filename_length + 1, poke_edit_data.extracted_extension))
+        os.rename(file_namer(poke_edit_data.levelup_path, sort_array_row[3], poke_edit_data.levelup_filename_length + 1, poke_edit_data), file_namer(poke_edit_data.levelup_path, forme_file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
 
         #now update the forme's personal file pointer (waited until after move so filename would be nice lol)
         poke_edit_data = personal_file_update(poke_edit_data, forme_file_number, -1, new_pointer)
@@ -229,7 +232,7 @@ def update_model_list(poke_edit_data):
         poke_edit_data.run_model_later = False
         print('Initializing default Model list')
     model_temp_list = []
-    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as model_hex_map:
             
             #for base formes plus egg at poke_edit_data.max_species_index
@@ -278,13 +281,13 @@ def add_missing_models(poke_edit_data):
     for species_index in range(1, poke_edit_data.max_species_index + 1):
         
         #build array with the jth element being the j+1th species' personal forme count
-        with open(file_namer(poke_edit_data.personal_path, species_index, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+        with open(file_namer(poke_edit_data.personal_path, species_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
             with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
                     #if the forme pointer bytes are 0x0000, then there is only the single Personal file    
                     if(personal_hex_map[0x1C] != 0x0 or personal_hex_map[0x1D] != 0x0):
                         personal_forme_count.append(personal_hex_map[0x20])
                         #check to see what the gender byte in the next personal file is
-                        with open(file_namer(poke_edit_data.personal_path, int(str(personal_hex_map[0x1C] + personal_hex_map[0x1D]*256)), poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f_1:
+                        with open(file_namer(poke_edit_data.personal_path, int(str(personal_hex_map[0x1C] + personal_hex_map[0x1D]*256)), poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f_1:
                             with mmap.mmap(f_1.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map_1:
                                 
                                 #if they have the same gender value, then not unique gendered formes (at most cosmetic). Also, if one of them is not all-male or all female, then something else, like Pikachu (base is 50/50, first personal forme is 100% male, but has alt female model for regular)
@@ -298,7 +301,7 @@ def add_missing_models(poke_edit_data):
         #print(str(species_index), species_has_unique_personal_genders_array[species_index - 1])
                         
     #print(personal_forme_count)
-    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
             model_hex_map.flush()
             
@@ -371,9 +374,9 @@ def add_missing_models(poke_edit_data):
                         if(file_number == model_dest_file):
                             break
                         #move file (# files per model)*(# new formes added) numbers forward
-                        os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                        os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data))
                         
-                        #print(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), ' ', file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                        #print(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data), ' ', file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data))
                        
                         #update the model file list. Otherwise if we do more than 1 forme it will miss the last files and crash
                         poke_edit_data.model.append(file_number + model_file_count*new_forme_count)
@@ -382,7 +385,7 @@ def add_missing_models(poke_edit_data):
                     temp_test = []    
                     for x in range(0, new_forme_count):
                         for y in range(0, model_file_count):
-                            shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension))
+                            shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data))
 
                     #reset the model filename list, since we added stuff to the end
                     poke_edit_data.model = []
@@ -476,7 +479,7 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
     
     #add appropriate number of spots
     #first find total number of files, then don't count the compilation file
-    if(os.path.getsize(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension)) > 84):
+    if(os.path.getsize(file_namer(poke_edit_data.personal_path, poke_edit_data.personal[-1], poke_edit_data.personal_filename_length, poke_edit_data)) > 84):
         personal_index_count = len(poke_edit_data.personal) - 1
     else:
         personal_index_count = len(poke_edit_data.personal)
@@ -499,7 +502,7 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
             break
         
 
-        with open(file_namer(poke_edit_data.personal_path, file, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+        with open(file_namer(poke_edit_data.personal_path, file, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
             with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as personal_hex_map:
                 #pull # of formes
                 forme_count = personal_hex_map[0x20]
@@ -555,6 +558,9 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
                     poke_edit_data.model_path = garc_path
                     poke_edit_data.model = temp
                     poke_edit_data.model_filename_length = len(temp[0])
+                    #check to see if model file is decompressed
+                    if('dec_' in temp[-1]):
+                        poke_edit_data.model_folder_prefix = 'dec_'
                     poke_edit_data = update_model_list(poke_edit_data)
                     #conditional_update_modelless_formes_list(poke_edit_data)
                 case "Personal":
@@ -648,7 +654,7 @@ def rebuild_csv(poke_edit_data):
     #Now build an array where the jth entry is the number of models for the (j-1)th Pokemon species (e.g. 0 is Bulby). Last entry is the 1 model for egg.
     species_model_count = []
     
-    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
             
             for x in range(poke_edit_data.max_species_index + 1):
@@ -678,7 +684,7 @@ def rebuild_csv(poke_edit_data):
                 temp_model_instance_csv += 1
 
         #grab the number of personal files for this Pokemon from the GARC
-        with open(file_namer(poke_edit_data.personal_path, current_base_species, poke_edit_data.personal_filename_length, poke_edit_data.extracted_extension), "r+b") as f:
+        with open(file_namer(poke_edit_data.personal_path, current_base_species, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
             with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
                 temp_personal_pointer_garc = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
                 

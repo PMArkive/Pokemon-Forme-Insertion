@@ -76,10 +76,14 @@ def personal_file_update(poke_edit_data, target_index, total_formes, start_locat
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
             personal_hex_map.flush()
             #print('about to write ', new_forme_count)
-            if(total_formes > 1):
+            
+            #set these two edits to only write if they are bigger than 0, allows this function to be called and only update one of them
+            if(total_formes > 0):
                 personal_hex_map[0x20] = total_formes
-            personal_hex_map[0x1C], personal_hex_map[0x1D] = little_endian_chunks(start_location)
-            personal_hex_map.flush()
+            if(target_index > 0):    
+                personal_hex_map[0x1C], personal_hex_map[0x1D] = little_endian_chunks(start_location)
+            
+                personal_hex_map.flush()
     return(poke_edit_data)
             
 #rebuilds personal compilation file

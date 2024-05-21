@@ -448,7 +448,7 @@ def add_missing_models(poke_edit_data):
 
 def update_species_list(poke_edit_data, overwrite_from_default = False):
     
-    if(overwrite_from_default):
+    if(overwrite_from_default or (len(poke_edit_data.master_list_csv) < 100)):
         print('Initializing default Species list')
         #set base species list based on which game we're dealing with
         #grab the species name from the master list
@@ -523,7 +523,7 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
     return(poke_edit_data)
 
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
-def load_GARC(poke_edit_data, garc_path, target, gameassert, overwrite_from_default = True):
+def load_GARC(poke_edit_data, garc_path, target, gameassert):
 
     if(os.path.exists(garc_path)):
         temp = []
@@ -557,7 +557,7 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert, overwrite_from_defa
                     poke_edit_data.personal_path = garc_path
                     poke_edit_data.personal = temp
                     poke_edit_data.personal_filename_length = len(temp[0])
-                    poke_edit_data = update_species_list(poke_edit_data, overwrite_from_default)
+                    poke_edit_data = update_species_list(poke_edit_data)
                 case "Levelup":
                     poke_edit_data.levelup_path = garc_path
                     poke_edit_data.levelup = temp

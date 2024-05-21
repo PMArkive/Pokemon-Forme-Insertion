@@ -85,9 +85,9 @@ def personal_file_update(poke_edit_data, target_index, total_formes, start_locat
 #rebuilds personal compilation file
 def concatenate_bin_files(folder_path):
 
-    generation = 7
+    #generation = 7
     pad_count = 4
-    max_binary_file = 9999
+    #max_binary_file = 9999
     
     
     #grab list of filenames inside folder
@@ -95,13 +95,13 @@ def concatenate_bin_files(folder_path):
     
     #check to see gen. Gen 6 has 3 char, 7 has 4, with extension is 7 and 8
     if(len(dir_list[0]) == 8):
-        generation = 7
+        #generation = 7
         pad_count = 4
-        max_binary_file = 9999
+        #max_binary_file = 9999
     elif(len(dir_list[0]) == 7):
-        generation = 6
+        #generation = 6
         pad_count = 3
-        max_binary_file = 999
+        #max_binary_file = 999
     else:
         print("Error with filename")
         return
@@ -128,6 +128,10 @@ def concatenate_bin_files(folder_path):
                     data = file.read()
                     output_stream.write(data)
     print('New compilation file created')
+
+
+
+
 
 def update_model_list(poke_edit_data):
     

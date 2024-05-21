@@ -15,7 +15,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     
     #checks to ensure that the evolution and levelup folders have the same number of files, and that the personal folder has either 1 more (because compilation file) or the same (if it was removed)
     if(poke_edit_data.evolution[-1]  ==  poke_edit_data.levelup[-1] and (poke_edit_data.levelup[-1] in {poke_edit_data.personal[-1], poke_edit_data.personal[-2]})):
-        start_location = poke_edit_data.evolution[-1] + 1
+        start_location = int(poke_edit_data.evolution[-1]) + 1
     else:
         print('Mismatch in file counts:\n')
         print('Personal has:', poke_edit_data.personal[-1], 'files')
@@ -129,7 +129,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                     break
                 
                 #move file (# files per model)*(# new formes added) numbers forward
-                os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data))
+                os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix))
                        
                 #update the model file list. Otherwise if we do more than 1 forme it will miss the last files and crash
                 poke_edit_data.model.append(file_number + model_file_count*new_forme_count)
@@ -138,7 +138,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             #copies each of the source model/texture/animation files from A.bin to the filename cleared up by the previous for loop
             for x in range(0, new_forme_count):
                 for y in range(0, model_file_count):
-                    shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data))
+                    shutil.copy(file_namer(poke_edit_data.model_path, model_start_file + y, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix), file_namer(poke_edit_data.model_path, model_dest_file + x*model_file_count + y + 1, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix))
             
             #reset the model filename list, since we added stuff to the end
             poke_edit_data.model = []
@@ -223,7 +223,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     for offset in range(new_forme_count):
         #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
         #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
-        poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, start_location + offset, base_form_index, start_location + offset, 0])
+        poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0])
 
     #modelless_skip_count = 0
     #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
@@ -246,7 +246,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         write_CSV(poke_edit_data)
     print('Pokemon Names and Files CSV updated' + '\n')
         
-    #poke_edit_data = load_names_from_CSV(poke_edit_data, True)
+    #poke_edit_data = load_names_from_CSV(poke_edit_data)
     
     #refresh filenames
     poke_edit_data.run_model_later = False    

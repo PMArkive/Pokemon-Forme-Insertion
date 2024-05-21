@@ -51,7 +51,7 @@ def pre_check(poke_edit_data):
         return
 
     #print(model_source_index)
-    poke_edit_data= add_new_forme_prelim(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index, evolution_source_index, model_bool.get())
+    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get())
     
     return(poke_edit_data)
 

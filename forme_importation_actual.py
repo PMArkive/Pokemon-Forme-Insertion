@@ -179,8 +179,6 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                 model_count += model_hex_map[4*index + 2]
             
             
-            #update csv with new model indices
-            update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location)
 
             #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
             #This section starts at poke_edit_data.max_species_index*4
@@ -204,24 +202,31 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             All Female Gender Difference models (except for Frillish, Jellicent, Pyroar, & Meowstic), all Silvally and Arceus (except for Normal), the entire Flabebe line except for Red and Eternal Floette, all Vivillon except for Icy Snow, Genesect w/ drive, Deerling/Sawsbuck except Spring, non-Zen Darmanitan, & Blue Basculin are 01 00
 
             '''
+            
+            
+            #first entry (Bulbasaur model) is at 4*(max_species_index + 1)
+            offset = 4*(poke_edit_data.max_species_index + 1)
+            
+            #get the old table
+            old_model_type_table = []
+            for offset in range(offset, 2, len(model_hex_map)):
+                #this gives the jth Pokemon entry the two bytes in their offset [0x0, 0x1] at the jth entry in this list
+                old_model_type_table.append([model_hex_map[offset], model_hex_map[offset + 1]])
 
-            
-            #number of bytes to move
-            #this is the length (in bytes) of the entire table, minus 4*(poke_edit_data.max_species_index+1) (to include the Egg), minus the number of models before the spot we're inserting into:
-            length_of_bytes_to_move = len(model_hex_map) - (poke_edit_data.max_species_index+1)*4 - total_previous_models*2
-            
+            #update csv with new model indices & also the model type table
+            poke_edit_data, new_model_type_table = update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_type_table)
+
+
             #add 2*<number formes added> bytes to the model table
             model_hex_map.resize(len(model_hex_map) + 2*new_forme_count)
             
-            #move(dest, src, cont) - moves the cont bytes starting at src to dest (note destination is just source plus twice as many bytes as models inserted)
-            model_hex_map.move(poke_edit_data.max_species_index*4 + total_previous_models*2 + 2*new_forme_count, poke_edit_data.max_species_index*4 + total_previous_models*2, length_of_bytes_to_move)
-            
-            #set the bytes for the new models to 0x00
-            for offset in range(0, 2*new_forme_count):
-                model_hex_map[poke_edit_data.max_species_index*4 + total_previous_models*2 + offset] = 0x00
-            
-            #write model file back
+            #update the file in memory with the new table
+            for offset in range(offset, 2, len(model_hex_map)):
+                model_hex_map[offset], model_hex_map[offset + 1] = new_model_type_table[offset]
+
+            #write model file back to disk    
             model_hex_map.flush()
+            
             print('Model header updated')
     
     print('New formes initialized!' + '\n')

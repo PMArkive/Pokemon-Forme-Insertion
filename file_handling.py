@@ -76,12 +76,11 @@ def concatenate_bin_files(folder_path):
 
 
 
-def update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location):
-    #Now update the csv table. It might be perhaps slightly more efficient to do each bit as it happens above, but this code is easier to follow
-    #first get the row number of all instances of the current species
-    working_indices = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, int(base_form_index))
+def update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_table = [], first_byte = 0x0, second_byte = 0x0):
     
-    #print('working indices, ', working_indices)
+
+    #get all row numbers of this species
+    working_indices = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, int(base_form_index))
     
     #grab the base species name since we'll be using that at least once
     base_species_name = poke_edit_data.master_list_csv[working_indices[0]][0]
@@ -98,13 +97,18 @@ def update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_cou
         #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
         #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
         poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0])
+        if(old_model_table != []):
+            #csv has 1 extra row for the personal entry, so we need to insert 1 earlier than the csv
+            #using variables with default value to allow possible future compatability with different model reference types
+            old_model_table.insert(csv_insertion_point - 1 + offset, [first_byte,second_byte])
+            
 
     #modelless_skip_count = 0
     #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
     for offset in range(1, len(poke_edit_data.master_list_csv)):
         poke_edit_data.master_list_csv[offset][4] = offset - 1 #- modelless_skip_count
         
-    return(poke_edit_data)
+    return(poke_edit_data, old_model_table)
 
 #Sorts Forme file order of Personal, Evolution, and Levelup Garc folders in order to allow for new formes of existing multi-formed Pokemon to be added
 def resort_file_structure(poke_edit_data):

@@ -66,13 +66,13 @@ def choose_GARC(poke_edit_data, target, gameassert):
             poke_edit_data.evolution_table_length = 0x30
             poke_edit_data.personal_table_length = 0x50
             match target:
-                case"Model":
+                case "Model":
                     targetpath = '007'
-                case"Personal":
+                case "Personal":
                     targetpath = '218'
-                case"Levelup":
+                case "Levelup":
                     targetpath = '214'
-                case"Evolution":
+                case "Evolution":
                     targetpath = '215'
         case "ORAS":
             poke_edit_data.evolution_table_length = 0x30

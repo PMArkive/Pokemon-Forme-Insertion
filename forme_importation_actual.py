@@ -3,7 +3,8 @@ import os
 import mmap
 from tkinter.filedialog import asksaveasfile
 from my_constants import *
-from file_handling import *
+from user_data_handling import *
+        
 
 #handles actual editing and moving of files for forme insertion
 def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, def_model):
@@ -177,10 +178,33 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                 model_hex_map[4*index + 0], model_hex_map[4*index + 1] = little_endian_chunks(model_count)
                 model_count += model_hex_map[4*index + 2]
             
-          
-                #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
-            #This section starts at poke_edit_data.max_species_index*4
             
+            #update csv with new model indices
+            update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location)
+
+            #after the first part of the file, the next part (starting immediately after the last four bytes of the above described section of the model table header that mark the Egg model) has 2 bytes per *model*, the values of which have some pattern but make about no sense at all. Perhaps legacy data? In any event the game needs there be those 2 bytes per model, so the following section shifts this table forward by the appropriate amount to insert 00 00 for each new model added (not adding them to the end just in case something somehow needs those in the expected spot).
+            #This section starts at poke_edit_data.max_species_index*4
+           
+            
+
+            ''':
+
+            Most pokemon are 00 00 as Axyn observed in gen VI
+
+            Totem Raticate, Totem Marowak, and Zygarde 10% with Power Construct are 07 01
+
+            Furfrou Star Trim, Furfrou Diamond Trim, and the Hat Pikachu for Johto, Sinnoh, Unova, Kalos, and Alola are 00 01
+
+            All the other totems except for Ribombee, Zygarde 50% with Power Construct, Medium and Large Pumpkaboo and Gourgeist are 07 00
+
+            Furfrou Matron Trim & Furfrou Dandy Trim are 00 04
+
+            Furfrou Kabuki Trim, Furfrou Pharaoh Trim, and all Minior Core Formes except for Red are 00 07
+
+            All Female Gender Difference models (except for Frillish, Jellicent, Pyroar, & Meowstic), all Silvally and Arceus (except for Normal), the entire Flabebe line except for Red and Eternal Floette, all Vivillon except for Icy Snow, Genesect w/ drive, Deerling/Sawsbuck except Spring, non-Zen Darmanitan, & Blue Basculin are 01 00
+
+            '''
+
             
             #number of bytes to move
             #this is the length (in bytes) of the entire table, minus 4*(poke_edit_data.max_species_index+1) (to include the Egg), minus the number of models before the spot we're inserting into:
@@ -201,39 +225,6 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             print('Model header updated')
     
     print('New formes initialized!' + '\n')
-    
-
-    #Now update the csv table. It might be perhaps slightly more efficient to do each bit as it happens above, but this code is easier to follow
-    #first get the row number of all instances of the current species
-    working_indices = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, int(base_form_index))
-    
-    #print('working indices, ', working_indices)
-    
-    #grab the base species name since we'll be using that at least once
-    base_species_name = poke_edit_data.master_list_csv[working_indices[0]][0]
-    
-    #and the last model index number (as we inserted the models after that)
-    #model_index_start = poke_edit_data.master_list_csv[working_indices[-1]][4]
-    
-    #index we start inserting the new rows from
-    csv_insertion_point = max(working_indices) + 1
-
-    #Second, we insert the new rows
-    #base species index, personal file index, model index, species name, forme name
-    for offset in range(new_forme_count):
-        #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
-        #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
-        poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0])
-
-    #modelless_skip_count = 0
-    #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
-    for offset in range(1, len(poke_edit_data.master_list_csv)):
-        
-        #if(str(poke_edit_data.master_list_csv[offset][3]) in poke_edit_data.modelless_formes):
-        #        modelless_skip_count += 1
-        #        continue
-        poke_edit_data.master_list_csv[offset][4] = offset - 1 #- modelless_skip_count
-        
 
     #finally, we sort the files so everything works nicely
     poke_edit_data = resort_file_structure(poke_edit_data)

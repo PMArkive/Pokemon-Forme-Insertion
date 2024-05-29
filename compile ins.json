@@ -7,7 +7,7 @@
   },
   {
    "optionDest": "filenames",
-   "value": "C:/Users/Aryeh/Dropbox/Programs/Pokemon-Forme-Insertion/main.py"
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/main.py"
   },
   {
    "optionDest": "onefile",
@@ -19,7 +19,7 @@
   },
   {
    "optionDest": "icon_file",
-   "value": "C:/Users/Aryeh/Dropbox/Programs/Pokemon-Forme-Insertion/Mewtwo-tefillin-head.ico"
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/Mewtwo-tefillin-head.ico"
   },
   {
    "optionDest": "clean_build",
@@ -55,19 +55,27 @@
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Aryeh/Dropbox/Programs/Pokemon-Forme-Insertion/file_handling.py;."
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/file_handling.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Aryeh/Dropbox/Programs/Pokemon-Forme-Insertion/forme_importation_actual.py;."
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/forme_importation_actual.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Aryeh/Dropbox/Programs/Pokemon-Forme-Insertion/my_constants.py;."
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/my_constants.py;."
   },
   {
    "optionDest": "datas",
-   "value": "C:/Users/Aryeh/Dropbox/Programs/Pokemon-Forme-Insertion/Mewtwo-tefillin-head.ico;."
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/my_constants.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/utilities.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "D:/Dropbox/Programs/Pokemon-Forme-Insertion/Mewtwo-tefillin-head.ico;."
   }
  ],
  "nonPyinstallerOptions": {

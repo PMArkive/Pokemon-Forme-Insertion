@@ -40,7 +40,7 @@ def resort_file_structure(poke_edit_data):
     #delete any files after max_species_index, if they exist. This clears the compilation file and any zero files from old versions
 
     print("Removing old compilation file and zero files in range")
-    for file_number in range(poke_edit_data.max_species_index + 1, int(poke_edit_data.personal[-1]) + 1):
+    for file_number in range(poke_edit_data.max_species_index + 1, int(poke_edit_data.personal[-1]) + 28):
         silentremove(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
         silentremove(file_namer(poke_edit_data.evolution_path, file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
         silentremove(file_namer(poke_edit_data.levelup_path, file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
@@ -62,7 +62,7 @@ def resort_file_structure(poke_edit_data):
             poke_edit_data = personal_file_update(poke_edit_data, sort_array_row[1], -1, new_pointer)
             #update last species to current species
             last_row_species = sort_array_row[1]
-        elif(last_row_species > sort_array_row[1]):
+        elif(sort_array_row[1] < last_row_species):
             print('Something is horribly wrong, it thinks that your base species are out of order')
             return
 

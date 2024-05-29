@@ -74,8 +74,6 @@ def concatenate_bin_files(folder_path):
     return
 
 
-
-
 def update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_table = [], first_byte = 0x0, second_byte = 0x0):
     
 
@@ -212,15 +210,13 @@ def add_missing_models(poke_edit_data):
                 
                 #like Meowstic, alt-gender has unique personal. No extra models.
                 if(species_has_unique_personal_genders_array[species_index]):
-                    amount_to_add = current_personal_forme_count - total_personal_models
+                    amount_to_add = current_personal_forme_count - total_personal_models - 1
                 #otherwise, if the "gendered forme model" bit is 1, then we have an extra model
                 elif(model_hex_map[4*species_index + 3] >> 1 & 1):
                     amount_to_add = current_personal_forme_count - (total_personal_models - 1)
                 #otherwise no gendered formes at all
                 else:
                     amount_to_add = current_personal_forme_count - total_personal_models
-                    
-                
 
                 
                 #print(real_personal_count, real_model_count, stock_model_exceeds_personal, amount_to_add, current_personal_forme_count, total_personal_models)

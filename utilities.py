@@ -9,8 +9,12 @@ from my_constants import *
 def max_of_column(input_table, column_number):
     max_temp = 0
     for rows in input_table:
-        if(rows[column_number].isdigit() and int(rows[column_number]) > max_temp):
-            max_temp = int(rows[column_number])
+        try:
+            if (int(rows[column_number]) > max_temp):
+                max_temp = int(rows[column_number])
+        except ValueError:
+            max_temp = max_temp
+
     return(max_temp)
 
 #pull non-empty entries from a given column from the given table and returns it

@@ -22,7 +22,7 @@ def entire_of_column(input_table, column_number, allow_multiple = True):
     table_temp = []
     last_element = ''
     for rows in input_table:
-        if(not(rows[column_number] in {'', "NA"}) and (allow_multiple or rows[column_number] != last_element)):
+        if(not(rows[column_number] in {'', "a"}) and (allow_multiple or rows[column_number] != last_element)):
             table_temp.append(rows[column_number])
         last_element = rows[column_number]
     return(table_temp)

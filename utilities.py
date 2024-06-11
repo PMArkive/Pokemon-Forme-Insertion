@@ -6,7 +6,7 @@ from my_constants import *
 
 
 #pull a given non-empty column from the given table and returns the max
-def max_of_column(input_table, column_number):
+def max_of_column(input_table, column_number) -> int:
     max_temp = 0
     for rows in input_table:
         try:
@@ -49,7 +49,7 @@ def silentremove(filename):
             raise # re-raise exception if a different error occurred
 
 #check if file is zeroed out
-def file_is_zero(string):
+def file_is_zero(string) -> bool:
     with open(string) as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as personal_hex_map:
             for x in personal_hex_map:
@@ -58,12 +58,6 @@ def file_is_zero(string):
     return(True)
 		
 #convert integer to little endian as long as two bytes at most
-def little_endian_chunks(big_input):
-    small_byte = big_input%256
-    large_byte = int((big_input - small_byte)/256)
-    
-    if(large_byte > 255):
-        print(big_input, " is too big, little endian conversion error")
-        return
-    else:
-        return(small_byte, large_byte)
+def little_endian_chunks(big_input: int) -> tuple[int, int]:
+    little = big_input.to_bytes(2, byteorder="little")
+    return (little[0], little[1])

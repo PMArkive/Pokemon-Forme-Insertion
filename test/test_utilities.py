@@ -1,6 +1,6 @@
 import unittest
 
-from utilities import max_of_column, entire_of_column, find_rows_with_column_matching
+from utilities import max_of_column, entire_of_column, find_rows_with_column_matching, little_endian_chunks
 
 
 class TestUtilities(unittest.TestCase):
@@ -45,6 +45,13 @@ class TestUtilities(unittest.TestCase):
         ]
         self.assertEqual(find_rows_with_column_matching(example_table, 0, 3), [1])
         self.assertEqual(find_rows_with_column_matching(example_table, 1, "a"), [0,2])
+
+    def test_little_endian_chunks(self):
+        self.assertEqual(little_endian_chunks(0x1234), (0x34, 0x12))
+        self.assertEqual(little_endian_chunks(0x0000), (0x00, 0x00))
+        with self.assertRaises(OverflowError) as e:
+            little_endian_chunks(0x12340000)
+            self.assertIn("big", str(e))
 
 
 

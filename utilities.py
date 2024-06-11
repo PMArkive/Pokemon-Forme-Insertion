@@ -30,7 +30,6 @@ def entire_of_column(input_table, column_number, allow_multiple = True):
 #returns a list of the indices of the rows that contain the specified search term in the specified column
 def find_rows_with_column_matching(input_table, column_number, search_term):
     found_table = []
-    row_index = 0
     for row_index, rows in enumerate(input_table):
         if(rows[column_number] == search_term):
             found_table.append(row_index)

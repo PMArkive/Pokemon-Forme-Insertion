@@ -1,6 +1,7 @@
 import errno
 import mmap
 import os
+import pathlib
 
 from my_constants import *
 
@@ -41,12 +42,8 @@ def file_namer(folder, index, length, poke_edit_data, file_prefix = ''):
     return(os.path.join(folder, file_prefix + str(index).zfill(length)) + poke_edit_data.extracted_extension)
 
 #removes file, exception thrown if not exist
-def silentremove(filename):
-    try:
-        os.remove(filename)
-    except OSError as e: # this would be "except OSError, e:" before Python 2.6
-        if e.errno != errno.ENOENT: # errno.ENOENT = no such file or directory
-            raise # re-raise exception if a different error occurred
+def silentremove(filename: str) -> None:
+    pathlib.Path(filename).unlink(missing_ok=True)
 
 #check if file is zeroed out
 def file_is_zero(string) -> bool:

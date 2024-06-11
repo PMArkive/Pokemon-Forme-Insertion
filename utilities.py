@@ -1,9 +1,6 @@
-import errno
 import mmap
 import os
 import pathlib
-
-from my_constants import *
 
 
 #pull a given non-empty column from the given table and returns the max

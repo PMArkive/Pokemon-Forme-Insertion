@@ -139,10 +139,8 @@ def rebuild_csv(poke_edit_data):
     #row 0 has the empty personal file, skip to next before first iteration
     row_index = 0
     model_index = 0
-        
-    temp_personal_instance_garc = 0
-    temp_personal_pointer_garc = 0
-    
+
+
     for current_base_species in range(1, poke_edit_data.max_species_index + 1):
         #skip the empty personal line
         #grab the rows from the loaded csv that match the currently loaded base species
@@ -258,7 +256,7 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
             personal_max_temp = max_of_column(loaded_csv_file, 1)
             #and now give the formes_list table the right size:
             #has max index + 1 entries, because there is both a 0th and max indexth entry                
-            for x in range(personal_max_temp+1):
+            for _ in range(personal_max_temp + 1):
                 temp_master_formes_list.append('')
                 
             for data_rows in loaded_csv_file:
@@ -379,7 +377,7 @@ def user_prompt_load_CSV(poke_edit_data, target):
 
     return(poke_edit_data)
 
-def create_refresh_CSV(poke_edit_data, target, gameassert):
+def create_refresh_CSV(poke_edit_data, gameassert):
     
 
     #update game in data structure (in case this is the first thing selected)
@@ -427,9 +425,6 @@ def write_CSV(poke_edit_data, csv_path = ''):
             #write the header line
             writer_head.writerow (['Base Index', 'Personal Index', 'Model Index', 'Species', 'Forme', 'Model', 'Texture', 'Shiny_Texture', 'Greyscale_Texture', 'Battle_Animations', 'Refresh_Animations', 'Movement_Animations', 'Lip_Animations', 'Empty', 'Portrait', 'Shiny_Portrait', 'Icon'])
             
-            model_file_start = 0
-            model_file_count = 0
-
             if(poke_edit_data.game in {'SM', 'USUM'}):
                 model_file_start = 1
                 model_file_count = 9                

@@ -68,7 +68,7 @@ personal_bool = BooleanVar()
 levelup_bool = BooleanVar()
 evolution_bool = BooleanVar()
 
-def update_stam(poke_edit_data, input_list, current_list, input_listbox, input_entry):
+def update_stam(poke_edit_data, input_list, input_listbox, input_entry):
     
     
     typed = model_entry.get()
@@ -98,10 +98,7 @@ def update_stam(poke_edit_data, input_list, current_list, input_listbox, input_e
                 data.append(item)
         data = input_list.copy()
         #print('something, ', data)
-        
-    current_list = data
-    
-    
+
     update(data, input_listbox)
     return(poke_edit_data)
 
@@ -217,7 +214,6 @@ def fillout_model(e):
         selection = poke_edit_data.current_model_source_list[model_listbox.curselection()[0]]
         model_entry.delete(0, END)
         model_entry.insert(END, selection)
-        check_model
     except Exception as error:
         print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
  
@@ -241,11 +237,11 @@ def set_games_checklist(gameinput):
 
 #update all listboxes
 def update_all_listboxes(poke_edit_data):
-    update_stam(poke_edit_data, poke_edit_data.model_source_list, poke_edit_data.current_model_source_list, model_listbox, model_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, poke_edit_data.current_evolution_list, evolution_listbox, evolution_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, poke_edit_data.current_levelup_list, levelup_listbox, levelup_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, poke_edit_data.current_personal_list, personal_listbox, personal_entry)
-    update_stam(poke_edit_data, poke_edit_data.base_species_list, poke_edit_data.current_base_species_list, base_species_listbox, base_species_entry)
+    update_stam(poke_edit_data, poke_edit_data.model_source_list, model_listbox, model_entry)
+    update_stam(poke_edit_data, poke_edit_data.master_formes_list, evolution_listbox, evolution_entry)
+    update_stam(poke_edit_data, poke_edit_data.master_formes_list, levelup_listbox, levelup_entry)
+    update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
+    update_stam(poke_edit_data, poke_edit_data.base_species_list, base_species_listbox, base_species_entry)
     return(poke_edit_data)
 
 for x in range(5):
@@ -397,7 +393,8 @@ load_pokelist_csv_button.grid(row = 0, column = 6, sticky="ew")
 save_pokelist_csv_button = Button(root, text = 'Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
 
-create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data, 'Pokemon Names and Files', games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,
+                                                                                                           games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 create_pokelist_csv_button.grid(row = 4, column = 6, sticky="ew")
 
 

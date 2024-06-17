@@ -50,8 +50,17 @@ def pre_check(poke_edit_data):
         print("Evolution source is not an integer!")
         return
 
+    #if skip_model_creation_bool is true, checkbox is unclicked, and we want to try skipping model insertion. If it's false (as per default), just set to false, no need for further check
+    if(skip_model_creation_bool.get()):
+        poke_edit_data, skip_model_insertion = check_adding_without_models_works(poke_edit_data, base_form_index, new_forme_count)
+        #if the above check function returned false, something is not quite right, abort
+        if(not(skip_model_insertion)):
+            return(poke_edit_data)
+    else:
+        skip_model_insertion = False
+
     #print(model_source_index)
-    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get())
+    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion)
     
     return(poke_edit_data)
 
@@ -67,6 +76,7 @@ model_bool = BooleanVar()
 personal_bool = BooleanVar()
 levelup_bool = BooleanVar()
 evolution_bool = BooleanVar()
+skip_model_creation_bool = BooleanVar()
 
 def update_stam(poke_edit_data, input_list, input_listbox, input_entry):
     
@@ -409,7 +419,9 @@ number_formes_entry.grid(row = 3, column = 1)
 execute_button = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_all_listboxes(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
 execute_button.grid(row = 4, column = 1, sticky="ew")
 
-
+skip_model_checkbutton = Checkbutton(root, text = 'Initialize Model Files', variable = skip_model_creation_bool, onvalue = False, offvalue = True)
+skip_model_checkbutton.grid(row = 1, column = 1, sticky="nsew")
+skip_model_checkbutton.select()
 
 #print("help")
 root.mainloop()

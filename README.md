@@ -28,7 +28,9 @@ Preparation:
 Use Instructions:
 1) Select the the Species (e.g. Bulbasaur) you are adding Forme(s) to from the leftmost column. You can search for the desired name in the text box, choose it by double-clicking the menu below (I coded almost the entire thing before I learned that tkinter doesn't have a module for the modern "type into the dropdown menu to narrow things down" thing, so I used this hacky setup until one is added or I find a nicer implementation).
 
-2) By default, this program will copy the Personal, Levelup, and Evolution files from the base forme of the selected species to set things up. If you want to copy any of those from a different specific instance, deselect the "Same as species" options above the desired custom selector, and select the desired source. Inserted formes will be named <Base Species> <#th forme>. Once the CSV file is updated with the inserted formes, you can change that default forme name with a custom one for tracking purposes (this will be reflected in the loaded lists in the tool when the updated CSV file is then reloaded).
+2a) By default, this program will copy the Personal, Levelup, and Evolution files from the base forme of the selected species to set things up. If you want to copy any of those from a different specific instance, deselect the "Same as species" options above the desired custom selector, and select the desired source. Inserted formes will be named <Base Species> <#th forme>. Once the CSV file is updated with the inserted formes, you can change that default forme name with a custom one for tracking purposes (this will be reflected in the loaded lists in the tool when the updated CSV file is then reloaded).
+
+2b) If you want to add unique data for an existing cosmetic forme (e.g. Female Venusaur or Pyroar, the different colors of Florges, etc.), uncheck "Initialize Model Files". If the program detects that there are not as many free cosmetic formes for the selected Pokemon as you told it Formes to add, it will report as such in the console and abort.
 
 3) Enter the number of formes you want to insert.
 

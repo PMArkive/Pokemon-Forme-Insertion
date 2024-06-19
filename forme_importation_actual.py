@@ -11,6 +11,26 @@ def resort_file_structure(poke_edit_data):
     forme_location_reference_array = []
     order_of_formes_iter = 0
     
+
+
+    
+    #delete any files after max_species_index, if they exist. This clears the compilation file and any zero files from old versions
+
+    print("Removing old compilation file and zero files in range")
+    for file_number in range(poke_edit_data.max_species_index + 1, int(poke_edit_data.personal[-1]) + 28):
+        try:
+            #only delete starting from the compilation file
+            if(os.path.getsize(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data)) > 84):
+                silentremove(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
+                silentremove(file_namer(poke_edit_data.evolution_path, file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
+                silentremove(file_namer(poke_edit_data.levelup_path, file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
+        except:
+            for x in range(file_number, int(poke_edit_data.personal[-1]) + 28):
+                silentremove(file_namer(poke_edit_data.personal_path, x, poke_edit_data.personal_filename_length, poke_edit_data))
+                silentremove(file_namer(poke_edit_data.evolution_path, x, poke_edit_data.evolution_filename_length, poke_edit_data))
+                silentremove(file_namer(poke_edit_data.levelup_path, x, poke_edit_data.levelup_filename_length, poke_edit_data))
+            break
+            
     print("Preparing to rebuild Forme file order")
     
     #build table for sorting
@@ -38,13 +58,6 @@ def resort_file_structure(poke_edit_data):
             
             #print(row_number, row[2], row[3])
             
-    #delete any files after max_species_index, if they exist. This clears the compilation file and any zero files from old versions
-
-    print("Removing old compilation file and zero files in range")
-    for file_number in range(poke_edit_data.max_species_index + 1, int(poke_edit_data.personal[-1]) + 28):
-        silentremove(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
-        silentremove(file_namer(poke_edit_data.evolution_path, file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
-        silentremove(file_namer(poke_edit_data.levelup_path, file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
         #print(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
     #iterate through the table of formes we built. rename each file starting in order from max_species_index + 1, and update the pointers in each (and the base species if it's the first instance).
     
@@ -107,12 +120,13 @@ def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme
             #find existing formes
             if(explicit_forme_count > 0x01):
                 temp_pointer = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
-                for offset in range(0, explicit_forme_count - 1):
-                    with open(file_namer(poke_edit_data.personal_path, temp_pointer, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f_temp:
-                        with mmap.mmap(f_temp.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map_temp:
-                            if(temp_pointer == personal_hex_map_temp[0x1C] + personal_hex_map_temp[0x1D]*256):
-                                temp_pointer += 1
-                                temp_forme_count_from_personal_file_count += 1
+                if(temp_pointer != 0):
+                    for offset in range(0, explicit_forme_count - 1):
+                        with open(file_namer(poke_edit_data.personal_path, temp_pointer + offset, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f_temp:
+                            with mmap.mmap(f_temp.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map_temp:
+                                if(temp_pointer == personal_hex_map_temp[0x1C] + personal_hex_map_temp[0x1D]*256):
+                                    temp_pointer += 1
+                                    temp_forme_count_from_personal_file_count += 1
 
     with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:

@@ -49,7 +49,7 @@ def pre_check(poke_edit_data):
     elif(not(isinstance(evolution_source_index, int))):
         print("Evolution source is not an integer!")
         return
-
+    
     #if skip_model_creation_bool is true, checkbox is unclicked, and we want to try skipping model insertion. If it's false (as per default), just set to false, no need for further check
     if(skip_model_creation_bool.get()):
         poke_edit_data, skip_model_insertion, update_forme_count = check_adding_without_models_works(poke_edit_data, base_form_index, new_forme_count)
@@ -58,6 +58,7 @@ def pre_check(poke_edit_data):
             return(poke_edit_data)
     else:
         skip_model_insertion = False
+        update_forme_count = 0
 
     #print(model_source_index)
     poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion, update_forme_count)
@@ -65,7 +66,7 @@ def pre_check(poke_edit_data):
     return(poke_edit_data)
 
 root = Tk()
-root.title('Pokemon Forme Insertion V.2.6')
+root.title('Pokemon Forme Insertion V.2.7')
 root.geometry('950x300')
 
 #root.iconbitmap(BitmapImage(title_icon_data))

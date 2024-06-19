@@ -1,7 +1,7 @@
 import mmap
 import os
 import pathlib
-
+import time
 
 #pull a given non-empty column from the given table and returns the max
 def max_of_column(input_table, column_number) -> int:
@@ -55,3 +55,35 @@ def file_is_zero(string) -> bool:
 def little_endian_chunks(big_input: int) -> tuple[int, int]:
     little = big_input.to_bytes(2, byteorder="little")
     return (little[0], little[1])
+
+
+#calls os.rename. if file is in use, it will wait for 1 second then try again
+def dropbox_workaround_file_rename(old_name, new_name):
+    
+    try:
+        os.rename(old_name, new_name)
+        return
+    except:
+        time.sleep(1)
+        try:
+            os.rename(old_name, new_name)
+        except:
+            time.sleep(5)
+            try:
+                os.rename(old_name, new_name)
+            except:
+                time.sleep(10)
+                try:
+                    os.rename(old_name, new_name)
+                except:
+                    time.sleep(30)
+                    try:
+                        os.rename(old_name, new_name)
+                    except:
+                        print('File ' + old_name + 'is open in some program, being uploaded by Dropbox, etc.' + 'This program will now wait 120 seconds for you to close that or wait for sync to complete (already tried waiting for up to 30 seconds).')
+                        time.sleep(120)
+                        try:
+                            os.rename(old_name, new_name)
+                        except:
+                            print('That did not work. I am going to throw an error now. I was partway through renaming files, so you should delete those folders and restore from your last good GARC.')
+                            

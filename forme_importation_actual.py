@@ -45,13 +45,13 @@ def resort_file_structure(poke_edit_data):
             forme_location_reference_array.append([row_number, row[2], row[3], order_of_formes_iter])
             #rename the Personal file to temporary name
             #print('Rename ' + str(row[3]) + ' to ' + 'temp_' + str(order_of_formes_iter))
-            os.rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, order_of_formes_iter, poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'))
+            dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, order_of_formes_iter, poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'))
             
             #rename the Evolution file to temporary name
-            os.rename(file_namer(poke_edit_data.evolution_path, row[3], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, order_of_formes_iter, poke_edit_data.evolution_filename_length, poke_edit_data, 'temp_'))
+            dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, row[3], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, order_of_formes_iter, poke_edit_data.evolution_filename_length, poke_edit_data, 'temp_'))
               
             #rename the Levelup file to temporary name
-            os.rename(file_namer(poke_edit_data.levelup_path, row[3], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, order_of_formes_iter, poke_edit_data.levelup_filename_length, poke_edit_data, 'temp_'))
+            dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, row[3], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, order_of_formes_iter, poke_edit_data.levelup_filename_length, poke_edit_data, 'temp_'))
             
             #increment forme order
             order_of_formes_iter += 1
@@ -81,13 +81,13 @@ def resort_file_structure(poke_edit_data):
             return
 
         #rename the Personal file to new name
-        os.rename(file_namer(poke_edit_data.personal_path, sort_array_row[3], poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.personal_path, forme_file_number, poke_edit_data.personal_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, sort_array_row[3], poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.personal_path, forme_file_number, poke_edit_data.personal_filename_length, poke_edit_data))
             
         #rename the Evolution file to new name
-        os.rename(file_namer(poke_edit_data.evolution_path, sort_array_row[3], poke_edit_data.evolution_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.evolution_path, forme_file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, sort_array_row[3], poke_edit_data.evolution_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.evolution_path, forme_file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
               
         #rename the Levelup file to new name
-        os.rename(file_namer(poke_edit_data.levelup_path, sort_array_row[3], poke_edit_data.levelup_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.levelup_path, forme_file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, sort_array_row[3], poke_edit_data.levelup_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.levelup_path, forme_file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
 
         #now update the forme's personal file pointer (waited until after move so filename would be nice lol)
         poke_edit_data = personal_file_update(poke_edit_data, forme_file_number, -1, new_pointer)
@@ -153,8 +153,8 @@ def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme
                     model_hex_map.flush()
                 return(poke_edit_data, True, update_forme_count)
             else:
-                print('There are ' + str(temp_model_count) + 'model files and ' + str(temp_forme_count_from_personal_file_count) + 'Personal files, aborting.')
-                return(poke_edit_data, False)
+                print('There are ' + str(temp_model_count) + ' model files and ' + str(temp_forme_count_from_personal_file_count) + ' Personal files, aborting.')
+                return(poke_edit_data, False, 0)
 
 #handles actual editing and moving of files for forme insertion
 def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, def_model, skip_model_insertion, update_forme_count):
@@ -285,7 +285,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                         break
                 
                     #move file (# files per model)*(# new formes added) numbers forward
-                    os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix))
+                    dropbox_workaround_file_rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix))
                        
                     #update the model file list. Otherwise if we do more than 1 forme it will miss the last files and crash
                     poke_edit_data.model.append(file_number + model_file_count*new_forme_count)
@@ -390,8 +390,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     poke_edit_data = resort_file_structure(poke_edit_data)
         
     try:
-        x = 0
-        #poke_edit_data = write_CSV(poke_edit_data)
+        poke_edit_data = write_CSV(poke_edit_data)
     except:
         print('Please close your Pokemon Names and Files CSV if it is open')
         poke_edit_data.csv_pokemon_list_path = asksaveasfile(title='Select Pokemon Names and Files CSV')

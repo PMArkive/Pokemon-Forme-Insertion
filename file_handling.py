@@ -52,7 +52,7 @@ def concatenate_bin_files(folder_path):
     #if length of last element is greater than dec 84, is compilation file (or something is wrong)
     if(os.path.getsize(os.path.join(folder_path, dir_list[-1])) > 84):
         # move the old compilation file to current directory and stick "backup_" in front of it
-        os.rename(os.path.join(folder_path, dir_list[-1]), 'backup_' + dir_list[-1])
+        dropbox_workaround_file_rename(os.path.join(folder_path, dir_list[-1]), 'backup_' + dir_list[-1])
         print('Backed up old compilation file to executable\'s directory')
         
         #remove compilation file from dir_list
@@ -114,10 +114,9 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
             #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
             #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
             poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0])
-            if(old_model_table != []):
-                #csv has 1 extra row for the personal entry, so we need to insert 1 earlier than the csv
-                #using variables with default value to allow possible future compatability with different model reference types
-                old_model_table.insert(csv_insertion_point - 1 + offset, [first_byte,second_byte])
+            #csv has 1 extra row for the personal entry, so we need to insert 1 earlier than the csv
+            #using variables with default value to allow possible future compatability with different model reference types
+            old_model_table.insert(csv_insertion_point - 1 + offset, [first_byte,second_byte])
             
 
         #modelless_skip_count = 0
@@ -278,7 +277,7 @@ def add_missing_models(poke_edit_data):
                         if(file_number == model_dest_file):
                             break
                         #move file (# files per model)*(# new formes added) numbers forward
-                        os.rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix))
+                        dropbox_workaround_file_rename(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix), file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data, poke_edit_data.model_folder_prefix))
                         
                         #print(file_namer(poke_edit_data.model_path, file_number, poke_edit_data.model_filename_length, poke_edit_data), ' ', file_namer(poke_edit_data.model_path, file_number + model_file_count*new_forme_count, poke_edit_data.model_filename_length, poke_edit_data))
                        

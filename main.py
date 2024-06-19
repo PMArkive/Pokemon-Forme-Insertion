@@ -52,7 +52,7 @@ def pre_check(poke_edit_data):
 
     #if skip_model_creation_bool is true, checkbox is unclicked, and we want to try skipping model insertion. If it's false (as per default), just set to false, no need for further check
     if(skip_model_creation_bool.get()):
-        poke_edit_data, skip_model_insertion = check_adding_without_models_works(poke_edit_data, base_form_index, new_forme_count)
+        poke_edit_data, skip_model_insertion, update_forme_count = check_adding_without_models_works(poke_edit_data, base_form_index, new_forme_count)
         #if the above check function returned false, something is not quite right, abort
         if(not(skip_model_insertion)):
             return(poke_edit_data)
@@ -60,7 +60,7 @@ def pre_check(poke_edit_data):
         skip_model_insertion = False
 
     #print(model_source_index)
-    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion)
+    poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion, update_forme_count)
     
     return(poke_edit_data)
 

@@ -24,6 +24,7 @@ def resort_file_structure(poke_edit_data):
             #create entry in array row_number of csv, species index, forme personal index, and the temporary filename
             forme_location_reference_array.append([row_number, row[2], row[3], order_of_formes_iter])
             #rename the Personal file to temporary name
+            #print('Rename ' + str(row[3]) + ' to ' + 'temp_' + str(order_of_formes_iter))
             os.rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, order_of_formes_iter, poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'))
             
             #rename the Evolution file to temporary name
@@ -95,16 +96,18 @@ def resort_file_structure(poke_edit_data):
 
 def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme_count):
     
-    temp_forme_count_from_personal_file_count = 0
-
+    temp_forme_count_from_personal_file_count = 1
+    explicit_forme_count = 0
+    update_forme_count = 0
+    
     #get the number of Personal files this pokemon actually has
     with open(file_namer(poke_edit_data.personal_path, base_form_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
-                
+            explicit_forme_count = personal_hex_map[0x20]
             #find existing formes
-            if(personal_hex_map[0x20] > 0x01):
+            if(explicit_forme_count > 0x01):
                 temp_pointer = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
-                for offset in range(0, personal_hex_map[0x20] - 1):
+                for offset in range(0, explicit_forme_count - 1):
                     with open(file_namer(poke_edit_data.personal_path, temp_pointer, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f_temp:
                         with mmap.mmap(f_temp.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map_temp:
                             if(temp_pointer == personal_hex_map_temp[0x1C] + personal_hex_map_temp[0x1D]*256):
@@ -122,17 +125,25 @@ def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme
 
             if(temp_model_count >= temp_forme_count_from_personal_file_count + new_forme_count):
 
+                #need to figure out if the alt formes are including in forme count
+                
+                #explicit_forme_count is >= the number of existing unique data instances plus the ones being added, we don't need to increase the explicit forme count. Otherwise, we need to update that. Could just do a max but this is clearer and trivially more overhead
+                if(explicit_forme_count >= temp_forme_count_from_personal_file_count + new_forme_count):
+                    update_forme_count = explicit_forme_count
+                else:
+                    update_forme_count = temp_forme_count_from_personal_file_count + new_forme_count
+
 			    #unset the "female cosmetic forme" flag if set
                 if model_hex_map[4*(base_form_index - 1) + 3] in {3, 7}:
                     model_hex_map[4*(base_form_index - 1) + 2] = 5
                     model_hex_map.flush()
-                return(poke_edit_data, True)
+                return(poke_edit_data, True, update_forme_count)
             else:
                 print('There are ' + str(temp_model_count) + 'model files and ' + str(temp_forme_count_from_personal_file_count) + 'Personal files, aborting.')
                 return(poke_edit_data, False)
 
 #handles actual editing and moving of files for forme insertion
-def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, def_model, skip_model_insertion):
+def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, def_model, skip_model_insertion, update_forme_count):
     
     
     #first unused file name
@@ -153,25 +164,29 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
 
     total_formes = new_forme_count
     
-    print('Updating existing files for species ' + str(base_form_index))
+    print('\n\nUpdating existing files for species ' + str(base_form_index))
     with open(file_namer(poke_edit_data.personal_path, base_form_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
         with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
             
-            #Get the new total number of formes
-            total_formes += personal_hex_map[0x20]
+            #forme count is not going to change, since we are initializing unique data for existing cosmetic formes
+            if(skip_model_insertion):
+                total_formes = update_forme_count
+            else:
+                #Get the new total number of formes
+                total_formes += personal_hex_map[0x20]
             
-            #find existing formes
-            if(personal_hex_map[0x20] > 0x01):
-                for offset in range(0, personal_hex_map[0x20] - 1):
-                    temp_pointer = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256 + offset
+                #find existing formes
+                if(personal_hex_map[0x20] > 0x01):
+                    for offset in range(0, personal_hex_map[0x20] - 1):
+                        temp_pointer = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256 + offset
                     
-                    #save current forme file pointer to the formes array
-                    existing_formes_array.append(temp_pointer)
+                        #save current forme file pointer to the formes array
+                        existing_formes_array.append(temp_pointer)
                     
-                    #set new number of total formes. Don't bother resetting the internal forme pointer because that will be handled by the sort at the end
-                    personal_file_update(poke_edit_data, temp_pointer, total_formes, -1)
+                        #set new number of total formes. Don't bother resetting the internal forme pointer because that will be handled by the sort at the end
+                        personal_file_update(poke_edit_data, temp_pointer, total_formes, -1)
             
-            #set new number of formes in this personal file as well before we exit
+                #set new number of formes in this personal file as well before we exit
             personal_hex_map[0x20] = total_formes
                     
     
@@ -197,7 +212,9 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         #copy levelup file to new location
         shutil.copy(file_namer(poke_edit_data.levelup_path, levelup_source_index, poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, start_location + offset, poke_edit_data.levelup_filename_length, poke_edit_data))
 
-    if(not(skip_model_insertion)):
+    if(skip_model_insertion):
+        poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, [])
+    else:
         print("Initializing new model data")
     
         #create new sets of model files
@@ -338,7 +355,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                     old_model_type_table.append([model_hex_map[offset], model_hex_map[offset + 1]])
 
                 #update csv with new model indices & also the model type table
-                poke_edit_data, new_model_type_table = update_model_csv_after_insert(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_type_table)
+                poke_edit_data, new_model_type_table = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_type_table)
 
 
                 #add 2*<number formes added> bytes to the model table
@@ -359,7 +376,8 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     poke_edit_data = resort_file_structure(poke_edit_data)
         
     try:
-        poke_edit_data = write_CSV(poke_edit_data)
+        x = 0
+        #poke_edit_data = write_CSV(poke_edit_data)
     except:
         print('Please close your Pokemon Names and Files CSV if it is open')
         poke_edit_data.csv_pokemon_list_path = asksaveasfile(title='Select Pokemon Names and Files CSV')

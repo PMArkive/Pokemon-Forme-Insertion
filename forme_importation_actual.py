@@ -135,7 +135,7 @@ def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme
 
 			    #unset the "female cosmetic forme" flag if set
                 if model_hex_map[4*(base_form_index - 1) + 3] in {3, 7}:
-                    model_hex_map[4*(base_form_index - 1) + 2] = 5
+                    model_hex_map[4*(base_form_index - 1) + 3] = 5
                     model_hex_map.flush()
                 return(poke_edit_data, True, update_forme_count)
             else:

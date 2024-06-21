@@ -185,6 +185,10 @@ def add_missing_models(poke_edit_data):
 
     for species_index in range(1, poke_edit_data.max_species_index + 1):
         
+        #skip Meowstic ffs
+        if(species_index + 1 == 678):
+            continue
+
         #build array with the jth element being the j+1th species' personal forme count
         with open(file_namer(poke_edit_data.personal_path, species_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
             with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:

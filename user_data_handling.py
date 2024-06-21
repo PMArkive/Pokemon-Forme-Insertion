@@ -353,7 +353,7 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
     except:
         print('CSV file ' + poke_edit_data.csv_pokemon_list_path + ' not found (if no text is present between "file" and "found", filename is empty).')
         try:
-            poke_edit_data.csv_pokemon_list_path = askopenfilename(title='Select Existing Pokemon Names and Files CSV, or cancel to create a new one')
+            poke_edit_data.csv_pokemon_list_path = asksaveasfilename(title='Select Existing Pokemon Names and Files CSV, or cancel to create a new one')
             poke_edit_data = load_names_from_CSV(poke_edit_data, just_wrote)
         except:
             poke_edit_data.csv_pokemon_list_path = asksaveasfilename(title='Create New Pokemon Names and Files CSV')

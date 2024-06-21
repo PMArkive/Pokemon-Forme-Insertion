@@ -361,12 +361,19 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             
                 #first entry (Bulbasaur model) is at 4*(max_species_index + 1)
                 offset = 4*(poke_edit_data.max_species_index + 1)
-            
+                
                 #get the old table
                 old_model_type_table = []
-                for offset in range(offset, 2, len(model_hex_map)):
+                for map_offset, byte_value in enumerate(model_hex_map):
+                    #If we haven't reached the start of the offset we want, just keep going
+                    #also, since the data structure we are skipping over is 4 bytes each at 0 to 3 mod 4, and the one we are reading is 2 bytes, starting at 0 mod 2, and we want to put each two bytes in its own sublist, we want to skip over the odd bytes)
+                    if(map_offset < offset):
+                        continue
                     #this gives the jth Pokemon entry the two bytes in their offset [0x0, 0x1] at the jth entry in this list
-                    old_model_type_table.append([model_hex_map[offset], model_hex_map[offset + 1]])
+                    if(map_offset % 2 == 0):
+                        old_model_type_table.append([byte_value, 0])
+                    else:
+                        old_model_type_table[-1][1] = byte_value
 
                 #update csv with new model indices & also the model type table
                 poke_edit_data, new_model_type_table = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_type_table)

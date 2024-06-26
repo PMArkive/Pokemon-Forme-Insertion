@@ -66,10 +66,8 @@ def pre_check(poke_edit_data):
     return(poke_edit_data)
 
 root = Tk()
-root.title('Pokemon Forme Insertion V.2.9')
+root.title('Pokemon Forme Insertion V.2.10')
 root.geometry('950x300')
-
-#root.iconbitmap(BitmapImage(title_icon_data))
 
 poke_edit_data = Pokedata()
 

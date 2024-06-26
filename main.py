@@ -66,7 +66,7 @@ def pre_check(poke_edit_data):
     return(poke_edit_data)
 
 root = Tk()
-root.title('Pokemon Forme Insertion V.2.8')
+root.title('Pokemon Forme Insertion V.2.9')
 root.geometry('950x300')
 
 #root.iconbitmap(BitmapImage(title_icon_data))
@@ -404,9 +404,8 @@ load_pokelist_csv_button.grid(row = 0, column = 6, sticky="ew")
 save_pokelist_csv_button = Button(root, text = 'Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
 
-create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,
-                                                                                                           games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
-create_pokelist_csv_button.grid(row = 4, column = 6, sticky="ew")
+#create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+#create_pokelist_csv_button.grid(row = 4, column = 6, sticky="ew")
 
 
 #Number of New Formes

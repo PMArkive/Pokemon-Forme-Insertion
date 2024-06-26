@@ -4,11 +4,9 @@ The interface is rather primitive, I threw this together in two lengthy sessions
 
 Notes and Warnings:
 
-1) Keep an eye on the text window, if anything goes wrong you will (hopefully) see errors I can use to identify and fix the problem there, and you will also get some feedback on what it's doing.
+1) Keep an eye on the console (text window), if anything goes wrong you will (hopefully) see errors I can use to identify and fix the problem there, and you will also get some feedback on what it's doing.
 
 2) The first time you create your csv file, you might need to save it and reload in order for the additions to populate properly in the window. 
-
-3) If you are coming from a pre 2.0 version, you will be prompted to create a csv when you load your old config file.
 
 
 Preparation:
@@ -19,7 +17,7 @@ Preparation:
 
 2) Select the paths to your extracted Model, Personal, Levelup, and Evolution GARC folders. The file dialog will tell you which GARC you are looking for based on your selected game. Following this, you can save your paths into a config file, so you can use those settings every time you work on this particular game.
 
-3) Click "Create/Reset CSV", then "Save CSV" to select a location to save it. This will record all the inserted formes, their indices in Personal, and what Model files correspond to which Forme. When you create the CSV, it will do so with the appropriate Forme names. Once you insert your formes, you can open the CSV and enter your custom forme names (it will give the new formes numerical designations). If you later use this tool to insert more formes, it will load your custom names. You can also change any stock forme name as desired.
+3) Click "Save CSV" to select a location to save your CSV file. This will record all the inserted formes, their indices in Personal, and what Model files correspond to which Forme. When you create the CSV, it will do so with the appropriate Forme names. Once you insert your formes, you can open the CSV and enter your custom forme names (it will give the new formes numerical designations). If you later use this tool to insert more formes, it will load your custom names. You can also change any stock forme name as desired.
 
 4) Click "Save CFG & CSV" to save the selected game and filepaths.
 

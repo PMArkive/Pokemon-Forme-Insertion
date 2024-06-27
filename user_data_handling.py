@@ -57,7 +57,7 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
     
 
 def choose_GARC(poke_edit_data, target, gameassert):
-
+    
     targetpath = ''
     #Evolution table has a fixed length per personal file, 0x30 in gen VI, 0x40 in gen VII
     #Similarly, the Personal file itself is 0x50 in gen VI, 0x54 in gen VII (additional bytes for "is regional forme" and Species-specific Z move)
@@ -74,6 +74,7 @@ def choose_GARC(poke_edit_data, target, gameassert):
                     targetpath = '214'
                 case "Evolution":
                     targetpath = '215'
+            poke_edit_data.modelless_exists = False
         case "ORAS":
             poke_edit_data.evolution_table_length = 0x30
             poke_edit_data.personal_table_length = 0x50
@@ -86,6 +87,7 @@ def choose_GARC(poke_edit_data, target, gameassert):
                     targetpath = '191'
                 case"Evolution":
                     targetpath = '192'
+            poke_edit_data.modelless_exists = False
         case "SM":
             poke_edit_data.evolution_table_length = 0x40
             poke_edit_data.personal_table_length = 0x54
@@ -98,6 +100,7 @@ def choose_GARC(poke_edit_data, target, gameassert):
                     targetpath = '013'
                 case"Evolution":
                     targetpath = '014'
+            poke_edit_data.modelless_exists = False
         case "USUM":
             poke_edit_data.evolution_table_length = 0x40
             poke_edit_data.personal_table_length = 0x54
@@ -353,7 +356,7 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
     except:
         print('CSV file ' + poke_edit_data.csv_pokemon_list_path + ' not found (if no text is present between "file" and "found", filename is empty).')
         try:
-            poke_edit_data.csv_pokemon_list_path = asksaveasfilename(title='Select Existing Pokemon Names and Files CSV, or cancel to create a new one')
+            poke_edit_data.csv_pokemon_list_path = askopenfilename(title='Select Existing Pokemon Names and Files CSV, or cancel to create a new one')
             poke_edit_data = load_names_from_CSV(poke_edit_data, just_wrote)
         except:
             poke_edit_data.csv_pokemon_list_path = asksaveasfilename(title='Create New Pokemon Names and Files CSV')
@@ -546,10 +549,11 @@ def save_game_cfg(poke_edit_data, game_set = ''):
     if(game_set != ''):
         poke_edit_data.game = game_set
     
-    if(poke_edit_data.modelless_exists):
+    if(poke_edit_data.modelless_exists and poke_edit_data.game == 'USUM'):
         temp_modelless = 'True'
     else:
         temp_modelless = 'False'
+        poke_edit_data.game = False
     
     try:
         with open(game_cfg_path, "w") as cfg:

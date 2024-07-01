@@ -92,3 +92,14 @@ def dropbox_workaround_file_rename(old_name, new_name):
                             except:
                                 print('That did not work. I am going to throw an error now. I was partway through renaming files, so you should delete those folders and restore from your last good GARC.')
                             
+
+
+#returns list of specified columns from specified table
+def entire_of_columns(input_table, column_numbers_list):
+    table_temp = []
+    for row_input in input_table:
+        row_temp = []
+        for column in column_numbers_list:
+                row_temp.append(row_input[column])
+        table_temp.append(row_temp)
+    return(table_temp)

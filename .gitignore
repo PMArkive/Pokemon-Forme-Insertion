@@ -178,3 +178,12 @@ oras pers.txt
 /.vs/Pokemon-Forme-Insertion/v17
 /.vs/Pokemon-Forme-Insertion/v17
 .vs/Pokemon-Forme-Insertion/v17/DocumentLayout.json
+env1/Scripts/pythonw_d.exe
+*.exe
+env1/Scripts/activate.bat
+env1/Scripts/activate
+env1/Scripts/Activate.ps1
+env1/Scripts/deactivate.bat
+env1/pyvenv.cfg
+.vs/Pokemon-Forme-Insertion/v17/workspaceFileList.bin
+.vs/Pokemon-Forme-Insertion/v17/workspaceFileList.bin

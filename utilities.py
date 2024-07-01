@@ -103,3 +103,19 @@ def entire_of_columns(input_table, column_numbers_list):
                 row_temp.append(row_input[column])
         table_temp.append(row_temp)
     return(table_temp)
+#takes the table and reorders it from most to least of specified column
+#This will have an error if there is a non-number element in the specified column, in that case we will just blindly append the rest as is
+def sort_table(to_sort_table, sort_column):
+    
+    order_table = []
+    try:
+        while True:
+            #grab the next row with the maximum value, pop it from the input table and append it to the output table
+            order_table.append(to_sort_table.pop(find_rows_with_column_matching(to_sort_table, sort_column, max_of_column(to_sort_table, sort_column))[0]))
+            if(len(to_sort_table) == 0):
+                break
+    except:
+        print('Error, there was a non-number element, appending remainder of the table as-is')
+        for x in to_sort_table:
+            order_table.append(x)
+    return(order_table)

@@ -9,7 +9,7 @@ from user_data_handling import *
 def resort_file_structure(poke_edit_data):
     
     forme_location_reference_array = []
-    order_of_formes_iter = 0
+    new_personal_index = poke_edit_data.max_species_index + 1
     
 
 
@@ -36,67 +36,68 @@ def resort_file_structure(poke_edit_data):
     #build table for sorting
     for row_number, row in enumerate(poke_edit_data.master_list_csv):
         #checks to see if alternate forme with own data (so has personal file location after max species index)=
-        
+        #2 is nat dex, 3 is personal
         if(row[2] != '' and row[3] != '' and row[3] > row[2]):
             
-            #new temp filename
+            #if the current nat dex number is bigger than the previous, we need to set the internal forme pointer equal to the current personal index
+            if(poke_edit_data.master_list_csv[row_number - 1][2] < row[2]):
+                new_forme_pointer = new_personal_index
 
-            #create entry in array row_number of csv, species index, forme personal index, and the temporary filename
-            forme_location_reference_array.append([row_number, row[2], row[3], order_of_formes_iter])
+            #create entry in array row_number of csv, species index, forme personal index (old filename), the new personal index offset, and the new forme pointer
+            forme_location_reference_array.append([row_number, row[2], row[3], new_personal_index, new_forme_pointer])
             #rename the Personal file to temporary name
             #print('Rename ' + str(row[3]) + ' to ' + 'temp_' + str(order_of_formes_iter))
-            dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, row[3], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, order_of_formes_iter, poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'))
-            
-            #rename the Evolution file to temporary name
-            dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, row[3], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, order_of_formes_iter, poke_edit_data.evolution_filename_length, poke_edit_data, 'temp_'))
-              
-            #rename the Levelup file to temporary name
-            dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, row[3], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, order_of_formes_iter, poke_edit_data.levelup_filename_length, poke_edit_data, 'temp_'))
             
             #increment forme order
-            order_of_formes_iter += 1
+            new_personal_index += 1
             
-            #print(row_number, row[2], row[3])
             
         #print(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
     #iterate through the table of formes we built. rename each file starting in order from max_species_index + 1, and update the pointers in each (and the base species if it's the first instance).
     
-    forme_file_number = poke_edit_data.max_species_index
-    new_pointer = 0
     last_row_species = 0
 
+    #update CSV and base species
     for sort_array_row in forme_location_reference_array:
         #increment forme file number
-        forme_file_number += 1
-        #print('forme file number, ', forme_file_number, 'last species', last_row_species, sort_array_row)
-        #update pointer if this is the first instance of a forme of this species, then edit the species (forme 0) personal file with new pointer
+        
+        #If we're at the first instance of alt forme for this species, update the base personal file with the new pointer
         if(sort_array_row[1] > last_row_species):
-            new_pointer = forme_file_number
-            #update pointer in species personal file
-            poke_edit_data = personal_file_update(poke_edit_data, sort_array_row[1], -1, new_pointer)
+            poke_edit_data = personal_file_update(poke_edit_data, sort_array_row[1], -1, sort_array_row[4])
             #update last species to current species
             last_row_species = sort_array_row[1]
         elif(sort_array_row[1] < last_row_species):
             print('Something is horribly wrong, it thinks that your base species are out of order')
             return
+        #update CSV
+        
+        poke_edit_data.master_list_csv[sort_array_row[0]][3] = sort_array_row[3]
+
+    #grab just the old and new file names, and the pointers
+    to_sort_table = entire_of_columns(forme_location_reference_array, [2, 3, 4])
+
+    #we need to figure out an order of renaming files. need to find the file going to the highest personal index, pull that to the end, then again until all done
+    
+    renaming_order_table = sort_table(to_sort_table, 1)
+
+    for row in renaming_order_table:
 
         #rename the Personal file to new name
-        dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, sort_array_row[3], poke_edit_data.personal_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.personal_path, forme_file_number, poke_edit_data.personal_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, renaming_order_table[0], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, renaming_order_table[1], poke_edit_data.personal_filename_length, poke_edit_data))
             
         #rename the Evolution file to new name
-        dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, sort_array_row[3], poke_edit_data.evolution_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.evolution_path, forme_file_number, poke_edit_data.evolution_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, renaming_order_table[0], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, renaming_order_table[1], poke_edit_data.evolution_filename_length, poke_edit_data))
               
         #rename the Levelup file to new name
-        dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, sort_array_row[3], poke_edit_data.levelup_filename_length, poke_edit_data, 'temp_'), file_namer(poke_edit_data.levelup_path, forme_file_number, poke_edit_data.levelup_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, renaming_order_table[0], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, renaming_order_table[1], poke_edit_data.levelup_filename_length, poke_edit_data))
 
         #now update the forme's personal file pointer (waited until after move so filename would be nice lol)
-        poke_edit_data = personal_file_update(poke_edit_data, forme_file_number, -1, new_pointer)
+        poke_edit_data = personal_file_update(poke_edit_data, renaming_order_table[1], -1, renaming_order_table[2])
 
-        #update CSV
-        poke_edit_data.master_list_csv[sort_array_row[0]][3] = forme_file_number
-        #print(poke_edit_data.master_list_csv[sort_array_row[0]])
     #rebuild personal compilation file
     concatenate_bin_files(poke_edit_data.personal_path)
+    
+
     #refresh filenames
     poke_edit_data.run_model_later = False    
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
@@ -165,7 +166,8 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     
     #checks to ensure that the evolution and levelup folders have the same number of files, and that the personal folder has either 1 more (because compilation file) or the same (if it was removed)
     if(poke_edit_data.evolution[-1]  ==  poke_edit_data.levelup[-1] and (poke_edit_data.levelup[-1] in {poke_edit_data.personal[-1], poke_edit_data.personal[-2]})):
-        start_location = int(poke_edit_data.evolution[-1]) + 1
+        #start from 255 later so we ALWAYS have room to sort things easily when we do the final step
+        start_location = int(poke_edit_data.evolution[-1]) + 1 + 255
     else:
         print('Mismatch in file counts:\n')
         print('Personal has:', poke_edit_data.personal[-1], 'files')

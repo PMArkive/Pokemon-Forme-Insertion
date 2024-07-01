@@ -1,4 +1,6 @@
-﻿class Pokedata:
+﻿version = '2.12.beta'
+
+class Pokedata:
     
     def __init__(self):
         #path variables   

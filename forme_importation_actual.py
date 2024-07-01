@@ -78,7 +78,7 @@ def resort_file_structure(poke_edit_data):
 
     #we need to figure out an order of renaming files. need to find the file going to the highest personal index, pull that to the end, then again until all done
     
-    renaming_order_table = sort_table(to_sort_table, 1)
+    renaming_order_table = sort_table_personal_files(to_sort_table)
 
     for row in renaming_order_table:
 

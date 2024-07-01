@@ -105,19 +105,37 @@ def entire_of_columns(input_table, column_numbers_list):
     return(table_temp)
 
 
-#takes the table and reorders it from most to least of specified column
-#This will have an error if there is a non-number element in the specified column, in that case we will just blindly append the rest as is
-def sort_table(to_sort_table, sort_column):
+#takes the table and reorders it so that the thing going somewhere empty has room, then moves the thing to where that one was, etc. Then repeats until done
+def sort_table_personal_files(to_sort_table):
+            #old, new, pointer
     
     order_table = []
+    max_personal = max_of_column(to_sort_table, 1)
+
+
     try:
         while True:
-            #grab the next row with the maximum value, pop it from the input table and append it to the output table
-            order_table.append(to_sort_table.pop(find_rows_with_column_matching(to_sort_table, sort_column, max_of_column(to_sort_table, sort_column))[0]))
+            #finds the highest destination file number left, adds that
+            order_table.append(to_sort_table.pop(find_rows_with_column_matching(to_sort_table, 1, max_of_column(to_sort_table, 1))[0]))
+        
+            while True:
+                #takes the most recently added line the order table, and gets the filenumber it came from.
+                next_personal = order_table[-1][0]
+    
+                #if next_personal is bigger than the largest destination file (max_personal), the file we just moved is one of the newly inserted Pokemon, so there is nothing more to add from this chain.
+                if(next_personal > max_personal or len(to_sort_table) == 0):
+                    break
+                else:
+                    #grab the thing that is going to where the previous file was
+                    order_table.append(to_sort_table.pop(find_rows_with_column_matching(to_sort_table, 1, next_personal)[0]))
+                    
             if(len(to_sort_table) == 0):
-                break
+                    break
+            
     except:
         print('Error, there was a non-number element, appending remainder of the table as-is')
         for x in to_sort_table:
             order_table.append(x)
     return(order_table)
+
+

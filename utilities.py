@@ -107,23 +107,43 @@ def entire_of_columns(input_table, column_numbers_list):
 
 #takes the table and reorders it so that the thing going somewhere empty has room, then moves the thing to where that one was, etc. Then repeats until done
 def sort_table_personal_files(to_sort_table):
-            #old, new, pointer
-    
+            
+    #old, new, pointer
     order_table = []
-    max_personal = max_of_column(to_sort_table, 1)
+    
+
+    #there's a big gap between the last "real" personal file and the newly insert files, need to find the last real one
+    #find the smallest number in old that's bigger than the biggest in new. This is the first new forme file, so the real max personal pre-insert will be the next biggest number    
+    max_personal_new = max_of_column(to_sort_table, 1)
+    
+    smallest_dummy_personal_old = 999999
+
+    for row in to_sort_table:
+        if(max_personal_new < row[0] < smallest_dummy_personal_old):
+            smallest_dummy_personal_old = row[0]
+            
+    max_personal_old = 0 
+    for row in to_sort_table:
+        if(max_personal_old < row[0] < smallest_dummy_personal_old):
+            max_personal_old = row[0]
+                
 
 
-    try:
-        while True:
-            #finds the highest destination file number left, adds that
-            order_table.append(to_sort_table.pop(find_rows_with_column_matching(to_sort_table, 1, max_of_column(to_sort_table, 1))[0]))
+
+   # try:
+    while True:
+        #finds the highest destination file number left, adds that
+        order_table.append(to_sort_table.pop(find_rows_with_column_matching(to_sort_table, 1, max_of_column(to_sort_table, 1))[0]))
         
+        
+        #if these are equal, no chain to follow
+        if(order_table[-1][0] != order_table[-1][1]):
             while True:
                 #takes the most recently added line the order table, and gets the filenumber it came from.
                 next_personal = order_table[-1][0]
     
-                #if next_personal is bigger than the largest destination file (max_personal), the file we just moved is one of the newly inserted Pokemon, so there is nothing more to add from this chain.
-                if(next_personal > max_personal or len(to_sort_table) == 0):
+                #if next_personal is bigger than the largest destination file (max_personal), the file we just moved is one of the newly inserted Pokemon, so there is nothing more to add from this chain,
+                if(next_personal >= max_personal_old or len(to_sort_table) == 0):
                     break
                 else:
                     #grab the thing that is going to where the previous file was
@@ -131,11 +151,10 @@ def sort_table_personal_files(to_sort_table):
                     
             if(len(to_sort_table) == 0):
                     break
-            
-    except:
-        print('Error, there was a non-number element, appending remainder of the table as-is')
-        for x in to_sort_table:
-            order_table.append(x)
+        elif(len(to_sort_table) == 0):
+            break
+    for x in to_sort_table:
+        order_table.append(x)
+        
     return(order_table)
-
 

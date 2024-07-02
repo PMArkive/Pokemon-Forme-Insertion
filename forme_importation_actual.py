@@ -33,6 +33,7 @@ def resort_file_structure(poke_edit_data):
             
     print("Preparing to rebuild Forme file order")
     
+    new_forme_pointer = 0
     #build table for sorting
     for row_number, row in enumerate(poke_edit_data.master_list_csv):
         #checks to see if alternate forme with own data (so has personal file location after max species index)=

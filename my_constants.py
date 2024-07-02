@@ -1,4 +1,4 @@
-﻿version = '2.12.beta'
+﻿version = '2.13'
 
 class Pokedata:
     

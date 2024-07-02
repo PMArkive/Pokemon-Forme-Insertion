@@ -546,14 +546,15 @@ def save_game_cfg(poke_edit_data, game_set = ''):
  
     game_cfg_path = asksaveasfilename(title='Select location to save cfg file', defaultextension='.cfg',filetypes= [('config','.cfg')])
     
-    if(game_set != ''):
+    if(game_set != '' and poke_edit_data.game == ''):
         poke_edit_data.game = game_set
+        
     
     if(poke_edit_data.modelless_exists and poke_edit_data.game == 'USUM'):
         temp_modelless = 'True'
     else:
         temp_modelless = 'False'
-        poke_edit_data.game = False
+        poke_edit_data.modelless_exists = False
     
     try:
         with open(game_cfg_path, "w") as cfg:

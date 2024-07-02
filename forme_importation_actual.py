@@ -38,44 +38,34 @@ def resort_file_structure(poke_edit_data):
     for row_number, row in enumerate(poke_edit_data.master_list_csv):
         #checks to see if alternate forme with own data (so has personal file location after max species index)=
         #2 is nat dex, 3 is personal
-        if(row[2] != '' and row[3] != '' and row[3] > row[2]):
+        
+        #if the current nat dex number is bigger than the previous, we need to set the internal forme pointer equal to the current personal index
             
-            #if the current nat dex number is bigger than the previous, we need to set the internal forme pointer equal to the current personal index
-            if(poke_edit_data.master_list_csv[row_number - 1][2] < row[2]):
-                new_forme_pointer = new_personal_index
-
-            #create entry in array row_number of csv, species index, forme personal index (old filename), the new personal index offset, and the new forme pointer
-            forme_location_reference_array.append([row_number, row[2], row[3], new_personal_index, new_forme_pointer])
-            #rename the Personal file to temporary name
-            #print('Rename ' + str(row[3]) + ' to ' + 'temp_' + str(order_of_formes_iter))
+        if(row[2] != ''):
+            if(isinstance(poke_edit_data.master_list_csv[row_number - 1][2], int) and isinstance(row[2], int)):
+                if(poke_edit_data.master_list_csv[row_number - 1][2] < row[2]):
+                    new_forme_pointer = new_personal_index
+                
+            if(row[3] != '' and row[3] > row[2]):
+                
+                #create entry in array row_number of csv, species index, forme personal index (old filename), the new personal index offset, and the new forme pointer
+                forme_location_reference_array.append([row_number, row[2], row[3], new_personal_index, new_forme_pointer])
+                
             
-            #increment forme order
-            new_personal_index += 1
+                #increment forme order
+                new_personal_index += 1
             
             
-        #print(file_namer(poke_edit_data.personal_path, file_number, poke_edit_data.personal_filename_length, poke_edit_data))
     #iterate through the table of formes we built. rename each file starting in order from max_species_index + 1, and update the pointers in each (and the base species if it's the first instance).
     
-    last_row_species = 0
 
-    #update CSV and base species
+    #update CSV
     for sort_array_row in forme_location_reference_array:
-        #increment forme file number
-        
-        #If we're at the first instance of alt forme for this species, update the base personal file with the new pointer
-        if(sort_array_row[1] > last_row_species):
-            poke_edit_data = personal_file_update(poke_edit_data, sort_array_row[1], -1, sort_array_row[4])
-            #update last species to current species
-            last_row_species = sort_array_row[1]
-        elif(sort_array_row[1] < last_row_species):
-            print('Something is horribly wrong, it thinks that your base species are out of order')
-            return
-        #update CSV
-        
+        #CSV
         poke_edit_data.master_list_csv[sort_array_row[0]][3] = sort_array_row[3]
 
     #grab just the old and new file names, and the pointers
-    to_sort_table = entire_of_columns(forme_location_reference_array, [2, 3, 4])
+    to_sort_table = entire_of_columns(forme_location_reference_array, [2, 3, 4, 1])
 
     #we need to figure out an order of renaming files. need to find the file going to the highest personal index, pull that to the end, then again until all done
     
@@ -84,17 +74,21 @@ def resort_file_structure(poke_edit_data):
     for row in renaming_order_table:
 
         #rename the Personal file to new name
-        dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, renaming_order_table[0], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, renaming_order_table[1], poke_edit_data.personal_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.personal_path, row[0], poke_edit_data.personal_filename_length, poke_edit_data), file_namer(poke_edit_data.personal_path, row[1], poke_edit_data.personal_filename_length, poke_edit_data))
             
         #rename the Evolution file to new name
-        dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, renaming_order_table[0], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, renaming_order_table[1], poke_edit_data.evolution_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.evolution_path, row[0], poke_edit_data.evolution_filename_length, poke_edit_data), file_namer(poke_edit_data.evolution_path, row[1], poke_edit_data.evolution_filename_length, poke_edit_data))
               
         #rename the Levelup file to new name
-        dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, renaming_order_table[0], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, renaming_order_table[1], poke_edit_data.levelup_filename_length, poke_edit_data))
+        dropbox_workaround_file_rename(file_namer(poke_edit_data.levelup_path, row[0], poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, row[1], poke_edit_data.levelup_filename_length, poke_edit_data))
 
-        #now update the forme's personal file pointer (waited until after move so filename would be nice lol)
-        poke_edit_data = personal_file_update(poke_edit_data, renaming_order_table[1], -1, renaming_order_table[2])
-
+        #now update the forme's personal file pointer, then the base forme's pointer
+        poke_edit_data = personal_file_update(poke_edit_data, row[1], -1, row[2])
+        
+        #and the base species
+        poke_edit_data = personal_file_update(poke_edit_data, row[3], -1, row[2])
+        
+        
     #rebuild personal compilation file
     concatenate_bin_files(poke_edit_data.personal_path)
     

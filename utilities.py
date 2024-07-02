@@ -25,12 +25,15 @@ def entire_of_column(input_table, column_number, allow_multiple = True):
         last_element = rows[column_number]
     return(table_temp)
 
-#returns a list of the indices of the rows that contain the specified search term in the specified column
-def find_rows_with_column_matching(input_table, column_number, search_term):
+#returns a list of the indices of the rows that contain the specified search term in the specified column. If only_one is true, then it returns the first one it finds instead
+def find_rows_with_column_matching(input_table, column_number, search_term, only_one = False):
     found_table = []
     for row_index, rows in enumerate(input_table):
         if(rows[column_number] == search_term):
-            found_table.append(row_index)
+            if(only_one):
+                return(row_index)
+            else:
+                found_table.append(row_index)
     return(found_table)
 
 #streamline the file name-calling

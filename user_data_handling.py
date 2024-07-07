@@ -249,6 +249,12 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
     try:
         with open(poke_edit_data.csv_pokemon_list_path, newline = '', encoding='utf-8-sig') as csvfile:
             reader_head = csv.reader(csvfile, dialect='excel', delimiter=',')
+            
+            
+            #check to see if older version from before saving the model header bytes
+            if(reader_head[14] == 'Model Bitflag 1'):
+                has_bitflag = True
+
             next(reader_head) # skip the header
 
             #load csv into an array
@@ -266,7 +272,7 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                 
                 #build the actual csv file
 
-                temp_row = [data_rows[3], data_rows[4], '', '', '']
+                temp_row = [data_rows[3], data_rows[4], '', '', '', 0, 0]
 
                 try:
                     temp_row[2] = int(data_rows[0])
@@ -280,7 +286,15 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                     temp_row[4] = int(data_rows[2])
                 except:
                     temp_row[4] = data_rows[2]
-                    
+                
+
+
+                #load the two bytes from the end of the model table thing
+                if(has_bitflag and not(poke_edit_data.modelless_exists and temp_row[3] == 975 and poke_edit_data.game == 'USUM')):
+                    temp_row[5] = data_rows[15]
+                    temp_row[6] = data_rows[16]
+                
+
                 temp_loaded_csv.append(temp_row)
                 
                 #print(temp_row)
@@ -308,7 +322,34 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                 #print(data_rows)
         #series of checks to see if it is the case that the loaded CSV arrays are shorter than the default-created ones (in which case assume we just created/refreshed the CSV, or loaded the wrong thing), or is longer (in which case the CSV has more entries than the game files and something is terribly wrong)
         #only do this if we loaded, not if we just insert a Pokemon        
-    
+        
+        #if CSV is old version, need to load bitflags from file
+        if(not has_bitflag):
+            with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
+                with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
+                    model_hex_map.flush()
+                    
+                    #move to start of bitflags, which is at 0x4*max nat dex
+                    start_offset = poke_edit_data.max_species_index*4
+
+                    #length of block of bitflags (two bytes per model set)
+                    flag_block_length = len(model_hex_map) - start_offset
+                    
+                    #monotone increasing on both sides, so each bitflag bytepair goes to the next row with a model
+                    loaded_csv_row = 1
+
+                    for offset in range(start_offset, flag_block_length, 2):
+                        
+                        #check to see if current CSV row has a model index (should only skip Dusk Rockruff in USUM before fix is applied)
+                        if(isinstance(temp_loaded_csv[loaded_csv_row][4], int)):
+                           temp_loaded_csv[loaded_csv_row][5] = model_hex_map[start_offset + offset + 0]
+                           temp_loaded_csv[loaded_csv_row][6] = model_hex_map[start_offset + offset + 1]
+                        
+                        loaded_csv_row += 1
+
+
+
+
         #looks for missing models, adds them in
         if(poke_edit_data.modelless_exists):
             poke_edit_data = add_missing_models(poke_edit_data)
@@ -426,7 +467,7 @@ def write_CSV(poke_edit_data, csv_path = ''):
         with open(csv_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
             writer_head = csv.writer(csvfile, dialect='excel', delimiter=',')
             #write the header line
-            writer_head.writerow (['Base Index', 'Personal Index', 'Model Index', 'Species', 'Forme', 'Model', 'Texture', 'Shiny_Texture', 'Greyscale_Texture', 'Battle_Animations', 'Refresh_Animations', 'Movement_Animations', 'Lip_Animations', 'Empty', 'Portrait', 'Shiny_Portrait', 'Icon'])
+            writer_head.writerow (['Base Index', 'Personal Index', 'Model Index', 'Species', 'Forme', 'Model', 'Texture', 'Shiny_Texture', 'Greyscale_Texture', 'Battle_Animations', 'Refresh_Animations', 'Movement_Animations', 'Lip_Animations', 'Empty', 'Model Bitflag 1', 'Model Bitflag 2', 'Portrait', 'Shiny_Portrait', 'Icon'])
             
             if(poke_edit_data.game in {'SM', 'USUM'}):
                 model_file_start = 1
@@ -444,10 +485,10 @@ def write_CSV(poke_edit_data, csv_path = ''):
             #write species index to column A, personal file index to B, model index to C, species name to D, forme to E, then model/texture/animaiton filenames in 6 starts at 4, 3, 1 for XY, ORAS, SMUSUM
             for enum, pokemon_instance in enumerate(poke_edit_data.master_list_csv):
                 if(enum == 0):
-                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]])
+                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1], + ['' for _ in range(model_file_count)] + pokemon_instance[5], pokemon_instance[6]])
                 else:
                     #print([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)])
-                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)])
+                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)] + [pokemon_instance[5], pokemon_instance[6]])
     #don't do anything and proceed as usual if none exists, print error message
     except:
         print('Selected CSV file is open in another program. Please close it and try again')

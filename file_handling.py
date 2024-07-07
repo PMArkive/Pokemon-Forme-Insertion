@@ -110,7 +110,7 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
 
         #find line in CSV of the model source index
         
-        row_of_source_model = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)
+        row_of_source_model = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)[0]
 
         bitflag_byte_1 = poke_edit_data.master_list_csv[row_of_source_model][5]
         bitflag_byte_2 = poke_edit_data.master_list_csv[row_of_source_model][6]

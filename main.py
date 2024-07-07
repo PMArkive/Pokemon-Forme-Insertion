@@ -60,6 +60,29 @@ def pre_check(poke_edit_data):
         skip_model_insertion = False
         update_forme_count = 0
 
+
+    #check the source model for possible issues
+    
+    #get the model index
+    if(model_bool.get()):
+        model_source_index_row = find_rows_with_column_matching(poke_edit_data.master_list_csv, 3, personal_source_index)[0]
+    else:
+        model_source_index_row = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)[0]
+
+    if(poke_edit_data.master_list_csv[model_source_index_row][5] == poke_edit_data.master_list_csv[model_source_index_row][6] == 0):
+        print('Bitflag check clear')
+    else:
+        print('Some Bitflags for the source model are not 0.\nIt is possible that using this source will cause glitches.\nIt is STRONGLY recommended that you confirm you have backups before you proceed.\nBitflag is ', poke_edit_data.master_list_csv[model_source_index_row][5], poke_edit_data.master_list_csv[model_source_index_row][6])
+        while True:
+            continue_bool = input('Do you wish to proceed? Y/N')
+            if(continue_bool in {'y', 'Y'}):
+                break
+            elif(continue_bool in {'n', 'N'}):
+                return(poke_edit_data)
+            print('Invalid entry')
+
+
+
     #print(model_source_index)
     poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion, update_forme_count)
     

@@ -73,7 +73,7 @@ def concatenate_bin_files(folder_path):
     return
 
 
-def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, old_model_table = [], first_byte = 0x0, second_byte = 0x0):
+def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, inserted_bool = False, model_source_index = 0):
     
 
     #get all row numbers of this species
@@ -87,7 +87,7 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
     
     #if old_model_table == [], we did something like add unique data for a previously cosmetic forme, need to update existing rows, not inser new ones
     
-    if(old_model_table == []):
+    if(inserted_bool):
         #find the first row for this base species that doesn't have unique personal data. That is where this will be entered.
         first_missing_personal_line = 0
         for indices in working_indices:
@@ -108,23 +108,28 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
         #index we start inserting the new rows from
         csv_insertion_point = max(working_indices) + 1
 
+        #find line in CSV of the model source index
+        
+        row_of_source_model = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)
+
+        bitflag_byte_1 = poke_edit_data.master_list_csv[row_of_source_model][5]
+        bitflag_byte_2 = poke_edit_data.master_list_csv[row_of_source_model][6]
+
+
         #Second, we insert the new rows
         #base species index, personal file index, model index, species name, forme name
         for offset in range(new_forme_count):
             #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
             #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
-            poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0])
-            #csv has 1 extra row for the personal entry, so we need to insert 1 earlier than the csv
-            #using variables with default value to allow possible future compatability with different model reference types
-            old_model_table.insert(csv_insertion_point - 1 + offset, [first_byte,second_byte])
+            poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0, bitflag_byte_1, bitflag_byte_2])
             
 
         #modelless_skip_count = 0
         #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
         for offset in range(1, len(poke_edit_data.master_list_csv)):
-            poke_edit_data.master_list_csv[offset][4] = offset - 1 #- modelless_skip_count
+            poke_edit_data.master_list_csv[offset][4] = offset - 1
         
-        return(poke_edit_data, old_model_table)
+        return(poke_edit_data)
 
 def update_model_list(poke_edit_data):
     

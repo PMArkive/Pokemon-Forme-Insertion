@@ -330,7 +330,7 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                     model_hex_map.flush()
                     
                     #move to start of bitflags, which is at 0x4*max nat dex
-                    start_offset = poke_edit_data.max_species_index*4
+                    start_offset = 4*(poke_edit_data.max_species_index + 1)
 
                     #length of block of bitflags (two bytes per model set)
                     flag_block_length = len(model_hex_map) - start_offset

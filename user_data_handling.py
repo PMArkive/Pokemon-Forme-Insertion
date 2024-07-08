@@ -249,18 +249,17 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
     try:
         with open(poke_edit_data.csv_pokemon_list_path, newline = '', encoding='utf-8-sig') as csvfile:
             reader_head = csv.reader(csvfile, dialect='excel', delimiter=',')
-            
-            
-            #check to see if older version from before saving the model header bytes
-            if(reader_head[14] == 'Model Bitflag 1'):
+        
+            #load csv into an array      
+            loaded_csv_file = list(reader_head)
+        
+            #check to see if older version from before saving the model header bytes and removes the header row
+            if(loaded_csv_file.pop(0)[14] == 'Model Bitflag 1'):
                 has_bitflag = True
-
-            next(reader_head) # skip the header
-
-            #load csv into an array
-            loaded_csv_file = []
-            for row in reader_head:
-                    loaded_csv_file.append(row)
+            else:
+                has_bitflag = False
+            
+        
             #We need to find the max personal file index since that's not in order with the structure of the models
             personal_max_temp = max_of_column(loaded_csv_file, 1)
             #and now give the formes_list table the right size:
@@ -342,8 +341,8 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                         
                         #check to see if current CSV row has a model index (should only skip Dusk Rockruff in USUM before fix is applied)
                         if(isinstance(temp_loaded_csv[loaded_csv_row][4], int)):
-                           temp_loaded_csv[loaded_csv_row][5] = model_hex_map[start_offset + offset + 0]
-                           temp_loaded_csv[loaded_csv_row][6] = model_hex_map[start_offset + offset + 1]
+                            temp_loaded_csv[loaded_csv_row][5] = model_hex_map[start_offset + offset + 0]
+                            temp_loaded_csv[loaded_csv_row][6] = model_hex_map[start_offset + offset + 1]
                         
                         loaded_csv_row += 1
 
@@ -485,13 +484,13 @@ def write_CSV(poke_edit_data, csv_path = ''):
             #write species index to column A, personal file index to B, model index to C, species name to D, forme to E, then model/texture/animaiton filenames in 6 starts at 4, 3, 1 for XY, ORAS, SMUSUM
             for enum, pokemon_instance in enumerate(poke_edit_data.master_list_csv):
                 if(enum == 0):
-                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1], + ['' for _ in range(model_file_count)] + pokemon_instance[5], pokemon_instance[6]])
+                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + ['' for x in range(model_file_count)] + [pokemon_instance[5], pokemon_instance[6]])
                 else:
                     #print([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)])
                     writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)] + [pokemon_instance[5], pokemon_instance[6]])
     #don't do anything and proceed as usual if none exists, print error message
-    except:
-        print('Selected CSV file is open in another program. Please close it and try again')
+    except Exception as e:
+        print(e)#'Selected CSV file is open in another program. Please close it and try again')
     
     
     #print('after write')

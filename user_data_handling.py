@@ -292,6 +292,10 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                 if(has_bitflag and not(poke_edit_data.modelless_exists and temp_row[3] == 975 and poke_edit_data.game == 'USUM')):
                     temp_row[5] = data_rows[15]
                     temp_row[6] = data_rows[16]
+                else:
+                    temp_row[5] = 0
+                    temp_row[6] = 0
+                    
                 
 
                 temp_loaded_csv.append(temp_row)
@@ -330,24 +334,21 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                     
                     #move to start of bitflags, which is at 0x4*max nat dex
                     start_offset = 4*(poke_edit_data.max_species_index + 1)
-
-                    #length of block of bitflags (two bytes per model set)
-                    flag_block_length = len(model_hex_map) - start_offset
                     
                     #monotone increasing on both sides, so each bitflag bytepair goes to the next row with a model
                     loaded_csv_row = 1
 
-                    for offset in range(start_offset, flag_block_length, 2):
+                    for offset in range(start_offset, len(model_hex_map) - 2, 2):
                         
                         #check to see if current CSV row has a model index (should only skip Dusk Rockruff in USUM before fix is applied)
-                        if(isinstance(temp_loaded_csv[loaded_csv_row][4], int)):
-                            temp_loaded_csv[loaded_csv_row][5] = model_hex_map[start_offset + offset + 0]
-                            temp_loaded_csv[loaded_csv_row][6] = model_hex_map[start_offset + offset + 1]
                         
-                        loaded_csv_row += 1
-
-
-
+                        while True:
+                            if(isinstance(temp_loaded_csv[loaded_csv_row][4], int)):
+                                temp_loaded_csv[loaded_csv_row][5] = model_hex_map[offset + 0]
+                                temp_loaded_csv[loaded_csv_row][6] = model_hex_map[offset + 1]
+                                loaded_csv_row += 1
+                                break
+                            loaded_csv_row += 1
 
         #looks for missing models, adds them in
         if(poke_edit_data.modelless_exists):
@@ -393,7 +394,8 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
             poke_edit_data.base_species_list = temp_base_species_list.copy()
             poke_edit_data.master_formes_list = temp_master_formes_list.copy()
             poke_edit_data.model_source_list = temp_model_source_list.copy()
-    except:
+    except Exception as e:
+        print(e)
         print('CSV file ' + poke_edit_data.csv_pokemon_list_path + ' not found (if no text is present between "file" and "found", filename is empty).')
         try:
             poke_edit_data.csv_pokemon_list_path = askopenfilename(title='Select Existing Pokemon Names and Files CSV, or cancel to create a new one')

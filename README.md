@@ -7,13 +7,13 @@ Notes and Warnings:
 
 I. Preparation:
 
-0) If you have previously followed steps 1 to 4, you can just use "Load CFG" to load your previously saved config and CSV file. (If you are upgrading from a pre-CSV version, execute steps 3 and 4 after loading your CFG and you should be good).
+0) If you have previously followed steps 1 to 4, you can just use "Load CFG & CSV" to load your previously saved config and CSV file. (If you are upgrading from a pre-CSV version, execute steps 3 and 4 after loading your CFG and you should be good).
 
 1) Select game from dropdown menu.
 
 2) Select the paths to your extracted Model, Personal, Levelup, and Evolution GARC folders. The file dialog will tell you which GARC you are looking for based on your selected game. Following this, you can save your paths into a config file, so you can use those settings every time you work on this particular game.
 
-3) Click "Save CSV" to select a location to save your CSV file. This will record all the inserted formes, their indices in Personal, and what Model files correspond to which Forme. When you create the CSV, it will do so with the appropriate Forme names. Once you insert your formes, you can open the CSV and enter your custom forme names (it will give the new formes numerical designations). If you later use this tool to insert more formes, it will load your custom names. You can also change any stock forme name as desired.
+3) Click "Create/Save CSV" to select a location to save your CSV file. This will record all the inserted formes, their indices in Personal, and what Model files correspond to which Forme. When you create the CSV, it will do so with the appropriate Forme names. Once you insert your formes, you can open the CSV and enter your custom forme names (it will give the new formes numerical designations). If you later use this tool to insert more formes, it will load your custom names. You can also change any stock forme name as desired.
 
 4) Click "Save CFG & CSV" to save the selected game and filepaths.
 

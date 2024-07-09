@@ -271,11 +271,13 @@ def set_games_checklist(gameinput):
 
 #update all listboxes
 def update_all_listboxes(poke_edit_data):
+    update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
     update_stam(poke_edit_data, poke_edit_data.model_source_list, model_listbox, model_entry)
     update_stam(poke_edit_data, poke_edit_data.master_formes_list, evolution_listbox, evolution_entry)
     update_stam(poke_edit_data, poke_edit_data.master_formes_list, levelup_listbox, levelup_entry)
     update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
     update_stam(poke_edit_data, poke_edit_data.base_species_list, base_species_listbox, base_species_entry)
+    update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
     return(poke_edit_data)
 
 for x in range(5):
@@ -286,7 +288,7 @@ for y in range(7):
 
 
 #load/save config
-cfg_load = Button(root, text = 'Load CFG', command = lambda: [load_game_cfg(poke_edit_data), set_games_checklist(poke_edit_data.game), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+cfg_load = Button(root, text = 'Load CFG & CSV', command = lambda: [load_game_cfg(poke_edit_data), set_games_checklist(poke_edit_data.game), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 cfg_load.grid(row = 0, column = 0, sticky="ew")
 
 
@@ -421,10 +423,10 @@ evolution_entry.bind("<KeyRelease>", check_evolution)
 
 #CSV file path Selection
 
-load_pokelist_csv_button = Button(root, text = 'Load CSV', command = lambda: [user_prompt_load_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+load_pokelist_csv_button = Button(root, text = '(Re)Load CSV', command = lambda: [user_prompt_load_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 load_pokelist_csv_button.grid(row = 0, column = 6, sticky="ew")
 
-save_pokelist_csv_button = Button(root, text = 'Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+save_pokelist_csv_button = Button(root, text = 'Create/Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
 
 #create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)

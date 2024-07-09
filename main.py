@@ -9,27 +9,29 @@ def pre_check(poke_edit_data):
     base_form_index = int(poke_edit_data.base_species_list.index(base_species_entry.get()))
     new_forme_count = int(number_formes_entry.get())
     #print(base_form_index, new_forme_count)print(model_source_index)
-
-    if(model_bool.get() or model_entry.get() == ''):
-        #this is not the correct index in the Model file structure, that will be computed later
-        model_source_index = base_form_index
-    else:
-        model_source_index = poke_edit_data.model_source_list.index(model_entry.get())
+    try:
+        if(model_bool.get() or model_entry.get() == ''):
+            #this is not the correct index in the Model file structure, that will be computed later
+            model_source_index = base_form_index
+        else:
+            model_source_index = poke_edit_data.model_source_list.index(model_entry.get())
     
-    if(personal_bool.get() or personal_entry.get() == ''):
-        personal_source_index = base_form_index
-    else:
-        personal_source_index = poke_edit_data.master_formes_list.index(personal_entry.get())
+        if(personal_bool.get() or personal_entry.get() == ''):
+            personal_source_index = base_form_index
+        else:
+            personal_source_index = poke_edit_data.master_formes_list.index(personal_entry.get())
     
-    if(levelup_bool.get() or levelup_entry.get() == ''):
-        levelup_source_index = base_form_index
-    else:
-        levelup_source_index = poke_edit_data.master_formes_list.index(levelup_entry.get())
+        if(levelup_bool.get() or levelup_entry.get() == ''):
+            levelup_source_index = base_form_index
+        else:
+            levelup_source_index = poke_edit_data.master_formes_list.index(levelup_entry.get())
     
-    if(evolution_bool.get() or evolution_entry.get() == ''):
-        evolution_source_index = base_form_index
-    else:
-        evolution_source_index = poke_edit_data.master_formes_list.index(evolution_entry.get())
+        if(evolution_bool.get() or evolution_entry.get() == ''):
+            evolution_source_index = base_form_index
+        else:
+            evolution_source_index = poke_edit_data.master_formes_list.index(evolution_entry.get())
+    except Exception as e:
+        print(e)
     
     if(not(isinstance(base_form_index, int))):
         print("Species is not an integer!")
@@ -69,12 +71,12 @@ def pre_check(poke_edit_data):
     else:
         model_source_index_row = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)[0]
 
-    if(poke_edit_data.master_list_csv[model_source_index_row][5] == poke_edit_data.master_list_csv[model_source_index_row][6] == 0):
-        print('Bitflag check clear')
+    if(poke_edit_data.master_list_csv[model_source_index_row][5] == 0 and poke_edit_data.master_list_csv[model_source_index_row][6] == 0):
+        print('Bitflag check clear\n')
     else:
-        print('Some Bitflags for the source model are not 0.\nIt is possible that using this source will cause glitches.\nIt is STRONGLY recommended that you confirm you have backups before you proceed.\nBitflag is ', poke_edit_data.master_list_csv[model_source_index_row][5], poke_edit_data.master_list_csv[model_source_index_row][6])
+        print('\nIf bitflags of the selected model are not 0, it is possible that using this source will cause glitches.\nIt is STRONGLY recommended that you confirm you have backups before you proceed.\nBitflag is ', poke_edit_data.master_list_csv[model_source_index_row][5], poke_edit_data.master_list_csv[model_source_index_row][6])
         while True:
-            continue_bool = input('Do you wish to proceed? Y/N')
+            continue_bool = input('\nDo you wish to proceed? Y/N\n')
             if(continue_bool in {'y', 'Y'}):
                 break
             elif(continue_bool in {'n', 'N'}):

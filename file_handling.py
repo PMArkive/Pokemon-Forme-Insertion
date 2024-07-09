@@ -79,13 +79,9 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
     #get all row numbers of this species
     working_indices = find_rows_with_column_matching(poke_edit_data.master_list_csv, 2, int(base_form_index))
     
+    
     #grab the base species name since we'll be using that at least once
     base_species_name = poke_edit_data.master_list_csv[working_indices[0]][0]
-    
-    #and the last model index number (as we inserted the models after that)
-    #model_index_start = poke_edit_data.master_list_csv[working_indices[-1]][4]
-    
-    #if old_model_table == [], we did something like add unique data for a previously cosmetic forme, need to update existing rows, not inser new ones
     
     if(inserted_bool):
         #find the first row for this base species that doesn't have unique personal data. That is where this will be entered.

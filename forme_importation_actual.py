@@ -224,7 +224,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         shutil.copy(file_namer(poke_edit_data.levelup_path, levelup_source_index, poke_edit_data.levelup_filename_length, poke_edit_data), file_namer(poke_edit_data.levelup_path, start_location + offset, poke_edit_data.levelup_filename_length, poke_edit_data))
 
     if(skip_model_insertion):
-        poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, [])
+        poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, True)
     else:
         print("Initializing new model data")
     
@@ -362,7 +362,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
 
 
                 #update csv with new model indices & also the model type table
-                poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, True, model_source_index)
+                poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, False, model_source_index)
 
 
                 #add 2*<number formes added> bytes to the model table

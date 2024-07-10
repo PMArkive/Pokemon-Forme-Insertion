@@ -484,7 +484,7 @@ def write_CSV(poke_edit_data, csv_path = ''):
             #write species index to column A, personal file index to B, model index to C, species name to D, forme to E, then model/texture/animaiton filenames in 6 starts at 4, 3, 1 for XY, ORAS, SMUSUM
             for enum, pokemon_instance in enumerate(poke_edit_data.master_list_csv):
                 if(enum == 0):
-                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + ['' for x in range(model_file_count)] + [pokemon_instance[5], pokemon_instance[6]])
+                    writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + ['' for x in range(model_file_count)] + ['', ''])
                 else:
                     #print([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)])
                     writer_head.writerow ([pokemon_instance[2], pokemon_instance[3], pokemon_instance[4], pokemon_instance[0], pokemon_instance[1]] + [(enum - 1)*model_file_count + x + model_file_start for x in range(model_file_count)] + [pokemon_instance[5], pokemon_instance[6]])

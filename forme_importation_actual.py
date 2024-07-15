@@ -375,6 +375,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                     if(isinstance(poke_edit_data.master_list_csv[csv_row][4], int)):
                         model_hex_map[offset] = poke_edit_data.master_list_csv[csv_row][5]
                         model_hex_map[offset + 1] = poke_edit_data.master_list_csv[csv_row][6]
+                    csv_row += 1
                    
 
                 #write model file back to disk    

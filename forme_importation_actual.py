@@ -357,7 +357,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             
             
                 #first entry (Bulbasaur model) is at 4*(max_species_index + 1)
-                offset = 4*(poke_edit_data.max_species_index + 1)
+                start_of_byte_flag_table = 4*(poke_edit_data.max_species_index + 1)
                 
 
 
@@ -371,7 +371,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
                 csv_row = 1
 
                 #update the file in memory with the new table
-                for offset in range(offset, 2, len(model_hex_map)):
+                for offset in range(start_of_byte_flag_table, 2, len(model_hex_map)):
                     if(isinstance(poke_edit_data.master_list_csv[csv_row][4], int)):
                         model_hex_map[offset] = poke_edit_data.master_list_csv[csv_row][5]
                         model_hex_map[offset + 1] = poke_edit_data.master_list_csv[csv_row][6]

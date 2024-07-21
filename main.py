@@ -71,7 +71,7 @@ def pre_check(poke_edit_data):
     else:
         model_source_index_row = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)[0]
 
-    if(poke_edit_data.master_list_csv[model_source_index_row][5] == 0 and poke_edit_data.master_list_csv[model_source_index_row][6] == 0):
+    if(int(poke_edit_data.master_list_csv[model_source_index_row][5]) == 0 and int(poke_edit_data.master_list_csv[model_source_index_row][6]) == 0):
         print('Bitflag check clear\n')
     else:
         print('\nIf bitflags of the selected model are not 0, it is possible that using this source will cause glitches.\nIt is STRONGLY recommended that you confirm you have backups before you proceed.\nBitflag is ', poke_edit_data.master_list_csv[model_source_index_row][5], poke_edit_data.master_list_csv[model_source_index_row][6])

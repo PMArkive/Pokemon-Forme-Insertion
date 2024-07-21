@@ -500,7 +500,7 @@ def write_CSV(poke_edit_data, csv_path = ''):
 
 def user_prompt_write_CSV(poke_edit_data, target):
 
-    write_CSV(poke_edit_data, asksaveasfilename(title='Select ' + target + ' CSV'))
+    write_CSV(poke_edit_data, asksaveasfilename(title='Select ' + target + ' CSV'), defaultextension='.csv',filetypes= [('CSV','.csv')])
     
     return(poke_edit_data)
 

@@ -500,7 +500,34 @@ def write_CSV(poke_edit_data, csv_path = ''):
 
 def user_prompt_write_CSV(poke_edit_data, target):
 
-    write_CSV(poke_edit_data, asksaveasfilename(title='Select ' + target + ' CSV'), defaultextension='.csv',filetypes= [('CSV','.csv')])
+
+    if(len(poke_edit_data.master_list_csv[1]) == 5):
+        with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
+            with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
+                model_hex_map.flush()
+                    
+                #move to start of bitflags, which is at 0x4*max nat dex
+                start_offset = 4*(poke_edit_data.max_species_index + 1)
+                    
+                #monotone increasing on both sides, so each bitflag bytepair goes to the next row with a model
+                loaded_csv_row = 1
+
+                for offset in range(start_offset, len(model_hex_map) - 2, 2):
+                        
+                    #check to see if current CSV row has a model index (should only skip Dusk Rockruff in USUM before fix is applied)
+                        
+                    while True:
+                        poke_edit_data.master_list_csv[loaded_csv_row].append(0)
+                        poke_edit_data.master_list_csv[loaded_csv_row].append(0)
+                        
+                        if(isinstance(poke_edit_data.master_list_csv[loaded_csv_row][4], int)):
+                            poke_edit_data.master_list_csv[loaded_csv_row][5] = model_hex_map[offset + 0]
+                            poke_edit_data.master_list_csv[loaded_csv_row][6] = model_hex_map[offset + 1]
+                            loaded_csv_row += 1
+                            break
+                        loaded_csv_row += 1
+
+    write_CSV(poke_edit_data, asksaveasfilename(title='Select ' + target + ' CSV', defaultextension='.csv',filetypes= [('CSV','.csv')]))
     
     return(poke_edit_data)
 

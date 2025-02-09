@@ -42,7 +42,6 @@ def deconstruct_GARC(bindata, poke_edit_data):
 
         #finally, last magic word, then header length (0xC), then length of actual data (same as final offset end from previous section
 
-
         #get Fat0 offset
         FAT0_offset = 0
         if(poke_edit_data.game in {"XY", "ORAS"}):
@@ -50,7 +49,7 @@ def deconstruct_GARC(bindata, poke_edit_data):
         else:
            FAT0_offset = 0x24
         
-      
+        
         FATB_offset = FAT0_offset + from_little_bytes_int(bindata[FAT0_offset + 0x4:FAT0_offset + 0x8])
 
         file_count = from_little_bytes_int(bindata[FAT0_offset + 0x8:FAT0_offset + 0xA])

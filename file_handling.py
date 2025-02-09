@@ -99,9 +99,6 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
         csv_insertion_point = max(working_indices) + 1
 
 
-         
-
-
         #Second, we insert the new rows
         #base species index, personal file index, model index, species name, forme name
         for offset in range(new_forme_count):

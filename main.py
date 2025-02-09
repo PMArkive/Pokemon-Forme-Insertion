@@ -1,5 +1,5 @@
 from tkinter import *
-
+from tkinter import ttk
 from forme_importation_actual import *
 from utilities import *
 
@@ -280,6 +280,20 @@ def update_all_listboxes(poke_edit_data):
     update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
     return(poke_edit_data)
 
+
+def update_non_model_lists(poke_edit_data):
+
+    personal_combobox.config(value = poke_edit_data.master_formes_list)
+    evolution_combobox.config(value = poke_edit_data.master_formes_list)
+    levelup_combobox.config(value = poke_edit_data.master_formes_list)
+    
+    base_species_combobox.config(value = poke_edit_data.base_species_list)
+
+def update_model_list(poke_edit_data):
+    model_combobox.config(value = poke_edit_data.model_source_list)
+
+
+
 for x in range(5):
     Grid.rowconfigure(root, x, weight = 1)
 
@@ -306,19 +320,19 @@ game_select.grid(row = 0, column = 1, sticky="ew")
 
 
 #load Model
-model_load = Button(root, text = 'Select Model Path', command = lambda: [choose_GARC(poke_edit_data, "Model", games_temp.get()), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 18, pady = 5, padx = 7)
+model_load = Button(root, text = 'Select Model GARC', command = lambda: [choose_GARC(poke_edit_data, "Model", games_temp.get()), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 18, pady = 5, padx = 7)
 model_load.grid(row = 0, column = 2, sticky="ew")
 
 #load Personal
-personal_load = Button(root, text = 'Select Personal Path', command = lambda: [choose_GARC(poke_edit_data, "Personal", games_temp.get()), update(poke_edit_data.base_species_list, base_species_listbox), update(poke_edit_data.master_formes_list, personal_listbox), update(poke_edit_data.master_formes_list, levelup_listbox), update(poke_edit_data.master_formes_list, evolution_listbox), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 18, pady = 5, padx = 7)
+personal_load = Button(root, text = 'Select Personal GARC', command = lambda: [choose_GARC(poke_edit_data, "Personal", games_temp.get()), update(poke_edit_data.base_species_list, base_species_listbox), update(poke_edit_data.master_formes_list, levelup_listbox), update(poke_edit_data.master_formes_list, evolution_listbox), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 18, pady = 5, padx = 7)
 personal_load.grid(row = 0, column = 3, sticky="ew")
 
 #load Levelup
-levelup_load = Button(root, text = 'Select Levelup Path', command = lambda: choose_GARC(poke_edit_data, "Levelup", games_temp.get()), height = 2, width = 18, pady = 5, padx = 7)
+levelup_load = Button(root, text = 'Select Levelup GARC', command = lambda: choose_GARC(poke_edit_data, "Levelup", games_temp.get()), height = 2, width = 18, pady = 5, padx = 7)
 levelup_load.grid(row = 0, column = 4, sticky="ew")
 
 #load Evolution
-evolution_load = Button(root, text = 'Select Evolution Path', command = lambda: choose_GARC(poke_edit_data, "Evolution", games_temp.get()), height = 2, width = 18, pady = 5, padx = 7)
+evolution_load = Button(root, text = 'Select Evolution GARC', command = lambda: choose_GARC(poke_edit_data, "Evolution", games_temp.get()), height = 2, width = 18, pady = 5, padx = 7)
 evolution_load.grid(row = 0, column = 5, sticky="ew")
 
 
@@ -327,13 +341,10 @@ evolution_load.grid(row = 0, column = 5, sticky="ew")
 base_species_label = Label(root, text = "Select Species", width = 12, padx = 7)
 base_species_label.grid(row = 2, column = 0, sticky="nsew")
 
-base_species_entry = Entry(root, width = 18)
-base_species_entry.grid(row = 3, column = 0, sticky="nsew")
 
-base_species_listbox = Listbox(root, width = 18)
-base_species_listbox.grid(row = 4, column = 0, sticky="nsew")
+base_species_combobox = Listbox(root, width = 18)
+base_species_combobox.grid(row = 3, column = 0, sticky="new")
 
-update(poke_edit_data.base_species_list, base_species_listbox)
 
 base_species_listbox.bind("<Double-1>", fillout_base_species)
 base_species_entry.bind("<KeyRelease>", check_base_species)
@@ -369,16 +380,9 @@ personal_checkbutton.select()
 personal_label = Label(root, text = "Custom Personal", width = 12, padx = 3)
 personal_label.grid(row = 2, column = 3, sticky="nsew")
 
-personal_entry = Entry(root, width = 18)
-personal_entry.grid(row = 3, column = 3, sticky="nsew")
 
-personal_listbox = Listbox(root, width = 18)
-personal_listbox.grid(row = 4, column = 3, sticky="nsew")
-
-update(poke_edit_data.master_formes_list, personal_listbox)
-
-personal_listbox.bind("<Double-1>", fillout_personal)
-personal_entry.bind("<KeyRelease>", check_personal)
+personal_combobox = ttk.Combobox(root, value = [], width = 18)
+personal_combobox.grid(row = 3, column = 3, sticky="new")
 
 
 #Levelup Selection

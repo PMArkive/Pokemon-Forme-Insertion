@@ -295,6 +295,7 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
                     #pop model header into its own file
                     poke_edit_data.model_header = file_array.pop(0)
                     poke_edit_data.model = file_array
+                    poke_edit_data = update_model_list(poke_edit_data)
         except Exception as e:
             print(e)
             return(poke_edit_data)

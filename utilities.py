@@ -6,7 +6,10 @@ from struct import unpack
 
 #read input bytestring as little-endian, return integer
 def from_little_bytes_int(byte_input):
-    return(unpack("<I", byte_input)[0])
+    temp = 0
+    for x, byte in enumerate(byte_input):
+        temp += byte << (x*8)
+    return(temp)
 
 #convert integer input into little-endian hex with given padding (default 0x4 bytes)
 def from_int_little_bytes(decimal_number, padding = 0x4):

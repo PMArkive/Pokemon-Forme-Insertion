@@ -6,50 +6,59 @@ from utilities import *
 
 def pre_check(poke_edit_data):
     
-    base_form_index = int(poke_edit_data.base_species_list.index(base_species_entry.get()))
-    new_forme_count = int(number_formes_entry.get())
-    #print(base_form_index, new_forme_count)print(model_source_index)
+    #get index of base species
     try:
-        if(model_bool.get() or model_entry.get() == ''):
+        base_form_index = int(poke_edit_data.base_species_list.index(base_species_combobox.get().title()))
+    except:
+        print('Error,',base_species_combobox.get(),'not found.')
+        return
+
+    #number of formes to add
+    new_forme_count = int(number_formes_entry.get())
+
+
+    #model
+    try:
+        if(model_bool.get() or model_combobox.get() == ''):
             #this is not the correct index in the Model file structure, that will be computed later
             model_source_index = base_form_index
         else:
-            model_source_index = poke_edit_data.model_source_list.index(model_entry.get())
-    
-        if(personal_bool.get() or personal_entry.get() == ''):
+            model_source_index = int(poke_edit_data.base_species_list.index(model_combobox.get().title()))
+    except:
+        print('Error,',model_combobox.get(),'not found.')
+        return
+
+    #personal
+    try:
+        if(personal_bool.get() or personal_combobox.get() == ''):
+            #this is not the correct index in the Model file structure, that will be computed later
             personal_source_index = base_form_index
         else:
-            personal_source_index = poke_edit_data.master_formes_list.index(personal_entry.get())
-    
-        if(levelup_bool.get() or levelup_entry.get() == ''):
+            personal_source_index = int(poke_edit_data.base_species_list.index(personal_combobox.get().title()))
+    except:
+        print('Error,',personal_combobox.get(),'not found.')
+        return
+
+    #levelup
+    try:
+        if(levelup_bool.get() or levelup_combobox.get() == ''):
+            #this is not the correct index in the Model file structure, that will be computed later
             levelup_source_index = base_form_index
         else:
-            levelup_source_index = poke_edit_data.master_formes_list.index(levelup_entry.get())
-    
-        if(evolution_bool.get() or evolution_entry.get() == ''):
+            levelup_source_index = int(poke_edit_data.base_species_list.index(levelup_combobox.get().title()))
+    except:
+        print('Error,',levelup_combobox.get(),'not found.')
+        return
+
+    #evolution
+    try:
+        if(evolution_bool.get() or evolution_combobox.get() == ''):
+            #this is not the correct index in the Model file structure, that will be computed later
             evolution_source_index = base_form_index
         else:
-            evolution_source_index = poke_edit_data.master_formes_list.index(evolution_entry.get())
-    except Exception as e:
-        print(e)
-    
-    if(not(isinstance(base_form_index, int))):
-        print("Species is not an integer!")
-        return
-    elif(not(isinstance(new_forme_count, int))):
-        print("Formes to add is not an integer!")
-        return
-    elif(not(isinstance(model_source_index, int))):
-        print("Model source is not an integer!")
-        return
-    elif(not(isinstance(personal_source_index, int))):
-        print("Personal source is not an integer!")
-        return
-    elif(not(isinstance(levelup_source_index, int))):
-        print("Levelup source is not an integer!")
-        return
-    elif(not(isinstance(evolution_source_index, int))):
-        print("Evolution source is not an integer!")
+            evolution_source_index = int(poke_edit_data.base_species_list.index(evolution_combobox.get().title()))
+    except:
+        print('Error,',evolution_combobox.get(),'not found.')
         return
     
     #if skip_model_creation_bool is true, checkbox is unclicked, and we want to try skipping model insertion. If it's false (as per default), just set to false, no need for further check
@@ -92,7 +101,7 @@ def pre_check(poke_edit_data):
 
 root = Tk()
 root.title('Pokemon Forme Insertion V.' + version)
-root.geometry('950x300')
+root.geometry('1250x200')
 
 poke_edit_data = Pokedata()
 
@@ -102,184 +111,8 @@ levelup_bool = BooleanVar()
 evolution_bool = BooleanVar()
 skip_model_creation_bool = BooleanVar()
 
-def update_stam(poke_edit_data, input_list, input_listbox, input_entry):
-    
-    
-    typed = model_entry.get()
-    if typed == '':
-        #reset everything
-        data = poke_edit_data.model_source_list.copy()
-    else:
-        data = []
-        for item in poke_edit_data.current_model_source_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-    poke_edit_data.current_model_source_list = data
-    update(data, model_listbox)
-    
-
-    #get what was tuped
-    typed = input_entry.get()
-
-    if typed == '':
-        #full list
-        data = input_list.copy()
-        #print('nothin, ', data)
-    else:
-        data = []
-        for item in input_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-        data = input_list.copy()
-        #print('something, ', data)
-
-    update(data, input_listbox)
-    return(poke_edit_data)
-
-def update(data, input_listbox):
-    
-    
-    #clear list
-    input_listbox.delete(0, END)
-    for item in data:
-        input_listbox.insert(END, item)
-
-
-#update "Select Species" based on double-clicking in list
-def fillout_base_species(e):
-    try:
-        selection = poke_edit_data.current_base_species_list[base_species_listbox.curselection()[0]]
-        base_species_entry.delete(0, END)
-        base_species_entry.insert(END, selection)
-        check_base_species(e)
-    except Exception as error:
-        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
-
-#update search list for base species
-def check_base_species(e):
-    typed = base_species_entry.get()
-    if typed == '':
-        #reset everything
-        data = poke_edit_data.base_species_list.copy()
-    else:
-        data = []
-        for item in poke_edit_data.current_base_species_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-    poke_edit_data.current_base_species_list = data
-    update(data, base_species_listbox)
-
-
-#update "Custom Personal" based on double-clicking in list
-def fillout_personal(e):
-    try:
-        selection = poke_edit_data.current_personal_list[personal_listbox.curselection()[0]]
-        personal_entry.delete(0, END)
-        personal_entry.insert(END, selection)
-        check_personal(e)
-    except Exception as error:
-        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
-    
-#update listbox for personal source
-def check_personal(e):
-    typed = personal_entry.get()
-    if typed == '':
-        #reset everything
-        data = poke_edit_data.master_formes_list.copy()
-    else:
-        data = []
-        for item in poke_edit_data.current_personal_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-    poke_edit_data.current_personal_list = data
-    update(data, personal_listbox)
-
-#update "Custom Levelup" based on double-clicking in list
-def fillout_levelup(e):
-    try:    
-        selection = poke_edit_data.current_levelup_list[levelup_listbox.curselection()[0]]
-        levelup_entry.delete(0, END)
-        levelup_entry.insert(END, selection)
-        check_levelup(e)
-    except Exception as error:
-        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
-    
-#update listbox for levelup source
-def check_levelup(e):
-    typed = levelup_entry.get()
-    if typed == '':
-        #reset everything
-        data = poke_edit_data.master_formes_list.copy()
-    else:
-        data = []
-        for item in poke_edit_data.current_levelup_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-    poke_edit_data.current_levelup_list = data
-    update(data, levelup_listbox)
-
-#update "Custom Evolution" based on double-clicking in list
-def fillout_evolution(e):
-    try:
-        selection = poke_edit_data.current_evolution_list[evolution_listbox.curselection()[0]]
-        evolution_entry.delete(0, END)
-        evolution_entry.insert(END, selection)
-        check_evolution(e)
-    except Exception as error:
-        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
-
-#update listbox for evolution source
-def check_evolution(e):
-    typed = evolution_entry.get()
-    if typed == '':
-        #reset everything
-        data = poke_edit_data.master_formes_list.copy()
-    else:
-        data = []
-        for item in poke_edit_data.current_evolution_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-    poke_edit_data.current_evolution_list = data
-    update(data, evolution_listbox)
-
-#update "Custom Model" based on double-clicking in list
-def fillout_model(e):
-    try:
-        selection = poke_edit_data.current_model_source_list[model_listbox.curselection()[0]]
-        model_entry.delete(0, END)
-        model_entry.insert(END, selection)
-    except Exception as error:
-        print('You might have double-clicked on an empty row after the last valid selection (tkinter does this sometimes, working on a solution.)', error)
- 
-
-#update listbox for model source
-def check_model(e):
-    typed = model_entry.get()
-    if typed == '':
-        #reset everything
-        data = poke_edit_data.model_source_list.copy()
-    else:
-        data = []
-        for item in poke_edit_data.current_model_source_list:
-            if typed.lower() in item.lower():
-                data.append(item)
-    poke_edit_data.current_model_source_list = data
-    update(data, model_listbox)
-
 def set_games_checklist(gameinput):
     games_temp.set(gameinput)
-
-#update all listboxes
-def update_all_listboxes(poke_edit_data):
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
-    update_stam(poke_edit_data, poke_edit_data.model_source_list, model_listbox, model_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, evolution_listbox, evolution_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, levelup_listbox, levelup_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
-    update_stam(poke_edit_data, poke_edit_data.base_species_list, base_species_listbox, base_species_entry)
-    update_stam(poke_edit_data, poke_edit_data.master_formes_list, personal_listbox, personal_entry)
-    return(poke_edit_data)
-
 
 def update_non_model_lists(poke_edit_data):
 
@@ -289,10 +122,64 @@ def update_non_model_lists(poke_edit_data):
     
     base_species_combobox.config(value = poke_edit_data.base_species_list)
 
-def update_model_list(poke_edit_data):
+def update_model_list_for_box(poke_edit_data):
     model_combobox.config(value = poke_edit_data.model_source_list)
 
 
+
+#these are ugly, need to figure out passing event to consolidate
+def base_species_combobox_search(event):
+    value = event.widget.get()
+    if(value == ''):
+        base_species_combobox['value'] = poke_edit_data.base_species_list
+
+    else:
+        data = []
+
+        for item in poke_edit_data.base_species_list:
+            if(value.lower() in item.lower()):
+                data.append(item)
+            base_species_combobox['value'] = data
+
+def search_combobox_event(event, value, name):
+
+    if(value == ''):
+        name['value'] = poke_edit_data.master_formes_list
+
+    else:
+        data = []
+
+        for item in poke_edit_data.master_formes_list:
+            if(value.lower() in item.lower()):
+                data.append(item)
+            name['value'] = data
+
+
+def personal_combobox_search(event):
+    value = event.widget.get()
+    search_combobox_event(event, value, personal_combobox)
+
+def levelup_combobox_search(event):
+    value = event.widget.get()
+    search_combobox_event(event, value, levelup_combobox)
+
+def evolution_combobox_search(event):
+    value = event.widget.get()
+    search_combobox_event(event, value, evolution_combobox)
+
+def model_combobox_search(event):
+    value = event.widget.get()
+
+    if(value == ''):
+        model_combobox['value'] = poke_edit_data.model_source_list
+
+    else:
+        data = []
+
+        for item in poke_edit_data.model_source_list:
+            if(value.lower() in item.lower()):
+                data.append(item)
+            model_combobox['value'] = data
 
 for x in range(5):
     Grid.rowconfigure(root, x, weight = 1)
@@ -302,7 +189,7 @@ for y in range(7):
 
 
 #load/save config
-cfg_load = Button(root, text = 'Load CFG & CSV', command = lambda: [load_game_cfg(poke_edit_data), set_games_checklist(poke_edit_data.game), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+cfg_load = Button(root, text = 'Load CFG & CSV', command = lambda: [load_game_cfg(poke_edit_data), set_games_checklist(poke_edit_data.game), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 cfg_load.grid(row = 0, column = 0, sticky="ew")
 
 
@@ -320,11 +207,11 @@ game_select.grid(row = 0, column = 1, sticky="ew")
 
 
 #load Model
-model_load = Button(root, text = 'Select Model GARC', command = lambda: [choose_GARC(poke_edit_data, "Model", games_temp.get()), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 18, pady = 5, padx = 7)
+model_load = Button(root, text = 'Select Model GARC', command = lambda: [choose_GARC(poke_edit_data, "Model", games_temp.get()), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 model_load.grid(row = 0, column = 2, sticky="ew")
 
 #load Personal
-personal_load = Button(root, text = 'Select Personal GARC', command = lambda: [choose_GARC(poke_edit_data, "Personal", games_temp.get()), update(poke_edit_data.base_species_list, base_species_listbox), update(poke_edit_data.master_formes_list, levelup_listbox), update(poke_edit_data.master_formes_list, evolution_listbox), update(poke_edit_data.model_source_list, model_listbox)], height = 2, width = 18, pady = 5, padx = 7)
+personal_load = Button(root, text = 'Select Personal GARC', command = lambda: [choose_GARC(poke_edit_data, "Personal", games_temp.get()), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 personal_load.grid(row = 0, column = 3, sticky="ew")
 
 #load Levelup
@@ -336,18 +223,15 @@ evolution_load = Button(root, text = 'Select Evolution GARC', command = lambda: 
 evolution_load.grid(row = 0, column = 5, sticky="ew")
 
 
-
 #Base Species Selection
-base_species_label = Label(root, text = "Select Species", width = 12, padx = 7)
+base_species_label = Label(root, text = "Select Species", height = 2, width = 12, padx = 4)
 base_species_label.grid(row = 2, column = 0, sticky="nsew")
 
 
-base_species_combobox = Listbox(root, width = 18)
+base_species_combobox = ttk.Combobox(root, value = [], width = 18)
 base_species_combobox.grid(row = 3, column = 0, sticky="new")
 
-
-base_species_listbox.bind("<Double-1>", fillout_base_species)
-base_species_entry.bind("<KeyRelease>", check_base_species)
+base_species_combobox.bind('<KeyRelease>', base_species_combobox_search)
 
 
 #Model Selection
@@ -356,20 +240,13 @@ model_checkbutton = Checkbutton(root, text = 'Same as Species', variable = model
 model_checkbutton.grid(row = 1, column = 2, sticky="nsew")
 model_checkbutton.select()
 
-model_label = Label(root, text = "Custom Model", width = 12, padx = 3)
+model_label = Label(root, text = "Custom Model", height = 2, width = 12, padx = 4)
 model_label.grid(row = 2, column = 2, sticky="nsew")
 
-model_entry = Entry(root, width = 18)
-model_entry.grid(row = 3, column = 2, sticky="nsew")
+model_combobox = ttk.Combobox(root, value = [], width = 18)
+model_combobox.grid(row = 3, column = 2, sticky="new")
 
-model_listbox = Listbox(root, width = 18)
-model_listbox.grid(row = 4, column = 2, sticky="nsew")
-
-update(poke_edit_data.model_source_list, model_listbox)
-
-model_listbox.bind("<Double-1>", fillout_model)
-model_entry.bind("<KeyRelease>", check_model)
-
+model_combobox.bind('<KeyRelease>', model_combobox_search)
 
 #Personal Selection
 
@@ -377,13 +254,14 @@ personal_checkbutton = Checkbutton(root, text = 'Same as Species', variable = pe
 personal_checkbutton.grid(row = 1, column = 3, sticky="nsew")
 personal_checkbutton.select()
 
-personal_label = Label(root, text = "Custom Personal", width = 12, padx = 3)
+personal_label = Label(root, text = "Custom Personal", height = 2, width = 12, padx = 4)
 personal_label.grid(row = 2, column = 3, sticky="nsew")
 
 
 personal_combobox = ttk.Combobox(root, value = [], width = 18)
 personal_combobox.grid(row = 3, column = 3, sticky="new")
 
+personal_combobox.bind('<KeyRelease>', personal_combobox_search)
 
 #Levelup Selection
 
@@ -391,19 +269,13 @@ levelup_checkbutton = Checkbutton(root, text = 'Same as Species', variable = lev
 levelup_checkbutton.grid(row = 1, column = 4, sticky="nsew")
 levelup_checkbutton.select()
 
-levelup_label = Label(root, text = "Custom Levelup", width = 12, padx = 3)
+levelup_label = Label(root, text = "Custom Levelup", height = 2, width = 12, padx = 4)
 levelup_label.grid(row = 2, column = 4, sticky="nsew")
 
-levelup_entry = Entry(root, width = 18)
-levelup_entry.grid(row = 3, column = 4, sticky="nsew")
+levelup_combobox = ttk.Combobox(root, value = [], width = 18)
+levelup_combobox.grid(row = 3, column = 4, sticky="new")
 
-levelup_listbox = Listbox(root, width = 18)
-levelup_listbox.grid(row = 4, column = 4, sticky="nsew")
-
-update(poke_edit_data.master_formes_list, levelup_listbox)
-
-levelup_listbox.bind("<Double-1>", fillout_levelup)
-levelup_entry.bind("<KeyRelease>", check_levelup)
+levelup_combobox.bind('<KeyRelease>', levelup_combobox_search)
 
 #Evolution Selection
 
@@ -411,26 +283,21 @@ evolution_checkbutton = Checkbutton(root, text = 'Same as Species', variable = e
 evolution_checkbutton.grid(row = 1, column = 5, sticky="nsew")
 evolution_checkbutton.select()
 
-evolution_label = Label(root, text = "Custom Evolution", width = 12, padx = 4)
+evolution_label = Label(root, text = "Custom Evolution", height = 2, width = 12, padx = 4)
 evolution_label.grid(row = 2, column = 5, sticky="nsew")
 
-evolution_entry = Entry(root, width = 18)
-evolution_entry.grid(row = 3, column = 5, sticky="nsew")
 
-evolution_listbox = Listbox(root, width = 18)
-evolution_listbox.grid(row = 4, column = 5, sticky="nsew")
+evolution_combobox = ttk.Combobox(root, width = 18)
+evolution_combobox.grid(row = 3, column = 5, sticky="new")
 
-update(poke_edit_data.master_formes_list, evolution_listbox)
-
-evolution_listbox.bind("<Double-1>", fillout_evolution)
-evolution_entry.bind("<KeyRelease>", check_evolution)
+evolution_combobox.bind('<KeyRelease>', evolution_combobox_search)
 
 #CSV file path Selection
 
-load_pokelist_csv_button = Button(root, text = '(Re)Load CSV', command = lambda: [user_prompt_load_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+load_pokelist_csv_button = Button(root, text = '(Re)Load CSV', command = lambda: [user_prompt_load_CSV(poke_edit_data, 'Pokemon Names and Files'), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 load_pokelist_csv_button.grid(row = 0, column = 6, sticky="ew")
 
-save_pokelist_csv_button = Button(root, text = 'Create/Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+save_pokelist_csv_button = Button(root, text = 'Create/Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
 save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
 
 #create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
@@ -438,15 +305,15 @@ save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
 
 
 #Number of New Formes
-number_formes_label = Label(root, text = "# Formes To Add", width = 12, padx = 4)
+number_formes_label = Label(root, text = "# Formes To Add", height = 2, width = 12, padx = 4)
 number_formes_label.grid(row = 2, column = 1, sticky="nsew")
 
 number_formes_entry = Entry(root, width = 12)
-number_formes_entry.grid(row = 3, column = 1)
+number_formes_entry.grid(row = 3, column = 1, sticky="new")
 
 #Run Insertion
-execute_button = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_all_listboxes(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
-execute_button.grid(row = 4, column = 1, sticky="ew")
+execute_button = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
+execute_button.grid(row = 3, column = 6, sticky="new")
 
 skip_model_checkbutton = Checkbutton(root, text = 'Initialize Model Files', variable = skip_model_creation_bool, onvalue = False, offvalue = True)
 skip_model_checkbutton.grid(row = 1, column = 1, sticky="nsew")

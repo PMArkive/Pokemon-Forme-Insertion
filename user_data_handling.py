@@ -364,12 +364,10 @@ def rebuild_csv(poke_edit_data):
     #Now build an array where the jth entry is the number of models for the (j-1)th Pokemon species (e.g. 0 is Bulby). Last entry is the 1 model for egg.
     species_model_count = []
     
-    with open(file_namer(poke_edit_data.model_path, 0, poke_edit_data.model_filename_length, poke_edit_data), "r+b") as f:
-        with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as model_hex_map:
             
-            for x in range(poke_edit_data.max_species_index + 1):
-                #the third byte is how many models that species has.
-                species_model_count.append(model_hex_map[4*x + 2])
+    for x in range(poke_edit_data.max_species_index + 1):
+        #the third byte is how many models that species has.
+        species_model_count.append(poke_edit_data.model_header[4*x + 2])
     
     #row 0 has the empty personal file, skip to next before first iteration
     row_index = 0
@@ -392,14 +390,8 @@ def rebuild_csv(poke_edit_data):
                 temp_model_instance_csv += 1
 
         #grab the number of personal files for this Pokemon from the GARC
-        with open(file_namer(poke_edit_data.personal_path, current_base_species, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
-            with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
-                temp_personal_pointer_garc = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
-                
-
-
-
         temp_personal_pointer_garc = from_little_bytes_int(poke_edit_data.personal[current_base_species][0x1C:0x1E])
+
          #if the pointer is 0 but the forme count is >1, then only 1 personal file
         if(temp_personal_pointer_garc in {'0', '', 0, 0x0}):
             temp_personal_instance_garc = 0x1

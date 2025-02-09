@@ -53,15 +53,6 @@ def file_namer(folder, index, length, poke_edit_data, file_prefix = ''):
 #removes file, exception thrown if not exist
 def silentremove(filename: str) -> None:
     pathlib.Path(filename).unlink(missing_ok=True)
-
-#check if file is zeroed out
-def file_is_zero(string) -> bool:
-    with open(string) as f:
-        with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as personal_hex_map:
-            for x in personal_hex_map:
-                if(x != 0x0):
-                    return(False)
-    return(True)
 		
 #convert integer to little endian as long as two bytes at most
 def little_endian_chunks(big_input: int) -> tuple[int, int]:

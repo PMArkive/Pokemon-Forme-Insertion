@@ -63,18 +63,20 @@ def deconstruct_GARC(bindata, poke_edit_data):
         FATB_offset += 0x18
 
         #iterate over the files, pulling the length from the FATB data, each file gets its own array in temp
-        for file in range(file_count):
+        for _ in range(file_count):
             
             #get length of current file
-            file_length = from_little_bytes_int(bindata[FATB_offset])
+            file_length = from_little_bytes_int(bindata[FATB_offset:FATB_offset + 4])
 
             #append the file to a new entry in output array
             output_array.append(bindata[data_offset:data_offset + file_length])
             
+            #move data pointer to start of next file
+            data_offset += file_length
+
             #move to next file in FATB data
             FATB_offset += 0x10
 
-        
         return(output_array)
 
 def reconstruct_GARC(poke_edit_data, GARC_name):

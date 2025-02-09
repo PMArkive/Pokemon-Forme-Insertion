@@ -67,7 +67,7 @@ def concatenate_bin_files(folder_path):
     
     return'''
 
-def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, inserted_bool = False, model_source_index = 0):
+def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, inserted_bool = False, model_source_flags = [0x0, 0x0]):
     
 
     #get all row numbers of this species
@@ -98,12 +98,8 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
         #index we start inserting the new rows from
         csv_insertion_point = max(working_indices) + 1
 
-        #find line in CSV of the model source index
-        
-        row_of_source_model = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)[0]
 
-        bitflag_byte_1 = poke_edit_data.master_list_csv[row_of_source_model][5]
-        bitflag_byte_2 = poke_edit_data.master_list_csv[row_of_source_model][6]
+         
 
 
         #Second, we insert the new rows
@@ -111,7 +107,7 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
         for offset in range(new_forme_count):
             #note that model index is set to zero, since we will do one big sweep after this to update all that come after, anyway
             #Forme name is set to the number alt forme it is (e.g. if we add a forme to a Pokemon with 3 existing alt formes, it will be 4 (as the base species itself is 0))
-            poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0, bitflag_byte_1, bitflag_byte_2])
+            poke_edit_data.master_list_csv.insert(csv_insertion_point + offset, [base_species_name, len(working_indices) + offset, base_form_index, start_location + offset, 0, model_source_flags[0], model_source_flags[1]])
             
 
         #modelless_skip_count = 0

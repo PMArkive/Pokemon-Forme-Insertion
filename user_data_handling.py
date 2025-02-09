@@ -91,7 +91,7 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
             out_file = poke_edit_data.levelup
         case "model":
             #merges with header for output
-            out_file = poke_edit_data.model_header + poke_edit_data.model
+            out_file = [poke_edit_data.model_header] + poke_edit_data.model
             
     file_count = len(out_file)
 
@@ -211,7 +211,7 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
 
         data_pointer += length
 
-        pointer += 0x4
+        pointer += 0x10
 
     #write total length of files
     temp[fimb_pointer:fimb_pointer + 4] = from_int_little_bytes(offset, 0x4)

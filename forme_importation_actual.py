@@ -332,6 +332,13 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         print('Model header updated')
     
     print('New formes initialized!' + '\n')
+        
+        #update csv with new model indices & also the model type table
+        poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, False, model_source_flags)
+
+    print('Writing updated GARCs' + '\n')
+
+    save_and_refresh_GARCs(poke_edit_data)
 
     #finally, we sort the files so everything works nicely
     poke_edit_data = resort_file_structure(poke_edit_data)

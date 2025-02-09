@@ -1,6 +1,6 @@
 import csv
 from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
-
+from utilities import *
 from file_handling import *
 
 def binary_file_to_array(file_path):
@@ -236,10 +236,6 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
 
     return(temp)
 
-
-
-
-
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
 def load_GARC(poke_edit_data, garc_path, target, gameassert):
 
@@ -395,13 +391,16 @@ def rebuild_csv(poke_edit_data):
             with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
                 temp_personal_pointer_garc = personal_hex_map[0x1C] + personal_hex_map[0x1D]*256
                 
-                #if the pointer is 0 but the forme count is >1, then only 1 personal file
-                if(temp_personal_pointer_garc in {'0', '', 0, 0x0}):
-                    temp_personal_instance_garc = 0x1
-                else:
-                    temp_personal_instance_garc = personal_hex_map[0x20]
-                
-        
+
+
+
+        temp_personal_pointer_garc = fromlittlebytesint(poke_edit_data.personal[current_base_species][0x1C:0x1E])
+         #if the pointer is 0 but the forme count is >1, then only 1 personal file
+        if(temp_personal_pointer_garc in {'0', '', 0, 0x0}):
+            temp_personal_instance_garc = 0x1
+        else:
+            temp_personal_instance_garc = fromlittlebytesint(poke_edit_data.personal[current_base_species][0x20])
+
         missing_personal_count = temp_personal_instance_garc - temp_personal_instance_csv
         missing_model_count = species_model_count[current_base_species - 1] - temp_model_instance_csv
         

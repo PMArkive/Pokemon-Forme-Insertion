@@ -5,6 +5,22 @@ from my_constants import *
 from user_data_handling import *
 from itertools import repeat
 
+
+
+def save_and_refresh_GARCs(poke_edit_data):
+    #save the GARCs
+    save_GARC(poke_edit_data, 'personal')
+    save_GARC(poke_edit_data, 'evolution')
+    save_GARC(poke_edit_data, 'levelup')
+    save_GARC(poke_edit_data, 'model')
+    print('GARC files written\n')
+    
+    poke_edit_data.run_model_later = False
+    poke_edit_data = update_model_list(poke_edit_data)
+    poke_edit_data = update_species_list(poke_edit_data)
+    print('Internal tables updated with changes' + '\n')
+    return(poke_edit_data)
+
 #Sorts Forme file order of Personal, Evolution, and Levelup Garc folders in order to allow for new formes of existing multi-formed Pokemon to be added
 def resort_file_structure(poke_edit_data):
     
@@ -48,7 +64,6 @@ def resort_file_structure(poke_edit_data):
     
     renaming_order_table = sort_table_personal_files(to_sort_table)
 
-    table_size = len(poke_edit_data.personal)
 
     temp_personal = poke_edit_data.personal.copy()
     temp_evolution = poke_edit_data.evolution.copy()
@@ -66,23 +81,6 @@ def resort_file_structure(poke_edit_data):
         
         #and the base species
         poke_edit_data = personal_file_update(poke_edit_data, row[3], -1, row[2])
-
-    #save the GARCs
-    save_GARC(poke_edit_data, 'personal')
-    save_GARC(poke_edit_data, 'evolution')
-    save_GARC(poke_edit_data, 'levelup')
-    save_GARC(poke_edit_data, 'model')
-    print('GARC files written\n')
-
-    #refresh filenames
-    poke_edit_data.run_model_later = False    
-    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
-    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
-    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
-    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
-    print('Internal tables updated with changes' + '\n')
-
-    return(poke_edit_data)    
     poke_edit_data.sorted = True
     save_and_refresh_GARCs(poke_edit_data)
     return(poke_edit_data)
@@ -126,7 +124,6 @@ def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme
 
 #handles actual editing and moving of files for forme insertion
 def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, def_model, skip_model_insertion, update_forme_count):
-    
     
     #first unused file name
     start_location = 0
@@ -173,20 +170,39 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     #now initialize the newly added formes
 
     #remember, .insert(x, y) places y at position x, e.g. .insert(150, y) places y at Mewtwo's position, and Mewtwo is now at 151
-
-    #if this Pokemon has no formes, put the n copies at the end via extend
+    #if this Pokemon has no formes, find the first entry of the next species with alt formes, and insert there
     if(old_forme_count == 1):
-        poke_edit_data.personal.extend(repeat(poke_edit_data.personal[personal_source_index], new_forme_count))
-        poke_edit_data.levelup.extend(repeat(poke_edit_data.levelup[levelup_source_index], new_forme_count))
-        poke_edit_data.evolution.extend(repeat(poke_edit_data.evolution[evolution_source_index], new_forme_count))
-    else:
-        #if more than just base forme, the last alt forme is at forme_pointer + (forme_count - 2), 1 taken out for base forme, and then the first alt forme is forme_pointer + 0. We need to insert from next thing, forme_pointer + 1, so just -1
-        new_forme_pointer = old_forme_pointer + len(existing_formes_array) - 1
-        for x in range(new_forme_count):
-            poke_edit_data.personal.insert(new_forme_pointer + x, poke_edit_data.personal[personal_source_index])
-            poke_edit_data.levelup.insert(new_forme_pointer + x, poke_edit_data.levelup[levelup_source_index])
-            poke_edit_data.evolution.insert(new_forme_pointer + x, poke_edit_data.evolution[evolution_source_index])
+        for index, pokemon in enumerate(poke_edit_data.personal[base_form_index:]):
 
+            cur_forme_pointer = from_little_bytes_int(pokemon[0x1C:0x1E])
+
+            #found first species with additional formes after this one, or current species if it has already
+            if(index > base_form_index and cur_forme_pointer != 0):
+                new_forme_pointer = cur_forme_pointer
+                break
+        #otherrwise, we are appending to the very end
+        new_forme_pointer = len(poke_edit_data.personal)
+    else:
+       #if more than just base forme, the last alt forme is at forme_pointer + (forme_count - 2), 1 taken out for base forme, and then the first alt forme is forme_pointer + 0. We need to insert from next thing, forme_pointer + 1, so just -1
+        new_forme_pointer = old_forme_pointer + len(existing_formes_array) - 1
+    
+    
+    #repoint everyone after the inserted formes, just add new_forme_count to current pointer. Also repoint base forme and any existing formes, and update the total formes
+    for index, pokemon in enumerate(poke_edit_data.personal[base_form_index:]):
+        cur_forme_pointer = from_little_bytes_int(pokemon[0x1C:0x1E])
+        
+        #if the forme pointer is pushed forwards, increment it
+        if(cur_forme_pointer >= new_forme_pointer):
+            pokemon[0x1C:0x1E] = from_int_little_bytes(cur_forme_pointer + new_forme_count, 0x2)
+        elif(cur_forme_pointer == old_forme_pointer):
+            pokemon[0x1C:0x1E] = from_int_little_bytes(new_forme_pointer, 0x2)
+            poke_edit_data.personal[base_form_index][0x20] = total_formes
+
+    for x in range(new_forme_count):
+        poke_edit_data.personal.insert(new_forme_pointer + x, poke_edit_data.personal[personal_source_index])
+        poke_edit_data.levelup.insert(new_forme_pointer + x, poke_edit_data.levelup[levelup_source_index])
+        poke_edit_data.evolution.insert(new_forme_pointer + x, poke_edit_data.evolution[evolution_source_index])
+    start_location = new_forme_pointer
 
 
     if(skip_model_insertion):
@@ -311,10 +327,6 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         #first entry (Bulbasaur model) is at 4*(max_species_index + 1)
         start_of_byte_flag_table = 4*(poke_edit_data.max_species_index + 1)
                 
-
-
-        #update csv with new model indices & also the model type table
-        poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, False, model_source_index)
                 
         #get the source model flag
         model_source_flag_offset = 2*model_source_index + start_of_byte_flag_table
@@ -331,10 +343,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         for x in range(new_forme_count):
             poke_edit_data.model_header.insert(target_bitflag_offset,model_source_flags[1])
             poke_edit_data.model_header.insert(target_bitflag_offset, model_source_flags[0])
-
         print('Model header updated')
-    
-    print('New formes initialized!' + '\n')
         
         #update csv with new model indices & also the model type table
         poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, False, model_source_flags)
@@ -343,8 +352,6 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
 
     save_and_refresh_GARCs(poke_edit_data)
 
-    #finally, we sort the files so everything works nicely
-    poke_edit_data = resort_file_structure(poke_edit_data)
         
     try:
         poke_edit_data = write_CSV(poke_edit_data)

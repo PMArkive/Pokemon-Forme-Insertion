@@ -3,6 +3,7 @@ from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 from utilities import *
 from file_handling import *
 from functools import reduce
+from forme_importation_actual import *
 
 def binary_file_to_array(file_path):
 
@@ -854,6 +855,8 @@ def save_game_cfg(poke_edit_data, game_set = ''):
     #catch for user not having set their CSV path
     if(poke_edit_data.csv_pokemon_list_path == ''):
         user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files')
+
+            
 
     try:
         with open(game_cfg_path, "w") as cfg:

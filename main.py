@@ -5,12 +5,7 @@ from utilities import *
 
 
 def pre_check(poke_edit_data):
-    
-    if(not(poke_edit_data.sorted)):
-        print('Detected unsorted files, this might take a while.')
-        poke_edit_data = resort_file_structure(poke_edit_data)
-        print('Files are now sorted, please try again. If this message ever displays again for this file, there might be a problem.')
-        return(poke_edit_data)
+
 
     #get index of base species
     try:
@@ -323,12 +318,13 @@ evolution_combobox.grid(row = 3, column = 5, sticky="new")
 evolution_combobox.bind('<KeyRelease>', evolution_combobox_search)
 
 
-
-
+#sort
+sort_button = Button(root, text = 'Sort Forme List', command = lambda: [resort_file_structure(poke_edit_data), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
+sort_button.grid(row = 2, column = 6, sticky="nsew")
 
 #Run Insertion
 execute_button = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
-execute_button.grid(row = 3, column = 6, sticky="new")
+execute_button.grid(row = 3, column = 6, sticky="nsew")
 
 skip_model_checkbutton = Checkbutton(root, text = 'Initialize Model Files', variable = skip_model_creation_bool, onvalue = False, offvalue = True)
 skip_model_checkbutton.grid(row = 1, column = 1, sticky="nsew")

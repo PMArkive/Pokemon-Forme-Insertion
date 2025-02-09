@@ -21,63 +21,63 @@ def save_and_refresh_GARCs(poke_edit_data):
 #Sorts Forme file order of Personal, Evolution, and Levelup Garc folders in order to allow for new formes of existing multi-formed Pokemon to be added
 def resort_file_structure(poke_edit_data):
     
-    forme_location_reference_array = []
-    new_personal_index = poke_edit_data.max_species_index + 1
-    new_forme_pointer = 0
+    forme_index = poke_edit_data.max_species_index + 1
+
+    repoint_alts_array = []
+    
+    temp_personal = [[0]]*len(poke_edit_data.personal)
+    temp_levelup = [[0]]*len(poke_edit_data.levelup)
+    temp_evolution = [[0]]*len(poke_edit_data.evolution)
+
     #build table for sorting
     for row_number, row in enumerate(poke_edit_data.master_list_csv):
-        #checks to see if alternate forme with own data (so has personal file location after max species index)=
-        #2 is nat dex, 3 is personal
-        
-        #if the current nat dex number is bigger than the previous, we need to set the internal forme pointer equal to the current personal index
+        #ensure that we are looking at a real personal entry
+        if(isinstance(row[2], int) and isinstance(row[3], int)):
+            print(row[3])
+
+            #if base forme index == personal index, look for any alt formes in personal, and write them to next slots. then update row[3] for those Pokemon
+            if(row[2] == row[3]):
+                #get forme count and old pointer
+                forme_count = poke_edit_data.personal[row[2]][0x20]
+                old_forme_pointer = from_little_bytes_int(poke_edit_data.personal[row[2]][0x1C:0x1E])
+
+                #if there are more personal files
+                if(old_forme_pointer != 0 and forme_count > 1):
+                    
+                    #update with new pointer
+                    poke_edit_data.personal[row[2]][0x1C:0x1E] = from_int_little_bytes(forme_index, 0x2)
+                    
+                    #then for each of the alts, update the pointer, then move all 3 files to the new array
+                    for x in range(forme_count - 1):
+                        poke_edit_data.personal[old_forme_pointer + x][0x1C:0x1E] = from_int_little_bytes(forme_index, 0x2)
+
+                        temp_personal[forme_index] = poke_edit_data.personal[old_forme_pointer + x]
+                        temp_levelup[forme_index] = poke_edit_data.levelup[old_forme_pointer + x]
+                        temp_evolution[forme_index] = poke_edit_data.evolution[old_forme_pointer + x]
+
+                        #base forme, old forme index, new forme index
+                        repoint_alts_array.append([row[2], old_forme_pointer + x, forme_index])
+                        
+                        #increment forme index pointer
+                        forme_index += 1
             
-        if(row[2] != ''):
-            if(isinstance(poke_edit_data.master_list_csv[row_number - 1][2], int) and isinstance(row[2], int)):
-                if(poke_edit_data.master_list_csv[row_number - 1][2] < row[2]):
-                    new_forme_pointer = new_personal_index
-                
-            if(row[3] != '' and row[3] > row[2]):
-                
-                #create entry in array row_number of csv, species index, forme personal index (old filename), the new personal index offset, and the new forme pointer
-                forme_location_reference_array.append([row_number, row[2], row[3], new_personal_index, new_forme_pointer])
-                
-            
-                #increment forme order
-                new_personal_index += 1
-            
-            
-    #iterate through the table of formes we built. rename each file starting in order from max_species_index + 1, and update the pointers in each (and the base species if it's the first instance).
-    
 
-    #update CSV
-    for sort_array_row in forme_location_reference_array:
-        #CSV
-        poke_edit_data.master_list_csv[sort_array_row[0]][3] = sort_array_row[3]
+                temp_personal[row[2]] = poke_edit_data.personal[row[2]]
+                temp_levelup[row[2]] = poke_edit_data.levelup[row[2]]
+                temp_evolution[row[2]] = poke_edit_data.evolution[row[2]]
+            else:
+                for row_index,other_row in enumerate(repoint_alts_array):
+                    #find the entry that has the same base forme and old forme index
+                    if(other_row[0] == row[2] and other_row[1] == row[3]):
+                        #update forme index
+                        row[3] = other_row[2]
+                        repoint_alts_array.pop(row_index)
+                        break
 
-    #grab just the old and new file names, and the pointers
-    to_sort_table = entire_of_columns(forme_location_reference_array, [2, 3, 4, 1])
+    poke_edit_data.personal = temp_personal.copy()
+    poke_edit_data.evolution = temp_evolution.copy()
+    poke_edit_data.levelup = temp_levelup.copy()
 
-    #we need to figure out an order of renaming files. need to find the file going to the highest personal index, pull that to the end, then again until all done
-    
-    renaming_order_table = sort_table_personal_files(to_sort_table)
-
-
-    temp_personal = poke_edit_data.personal.copy()
-    temp_evolution = poke_edit_data.evolution.copy()
-    temp_levelup = poke_edit_data.levelup.copy()
-
-    for row in renaming_order_table:
-
-        #move files
-        poke_edit_data.personal[row[1]] = temp_personal[row[0]]
-        poke_edit_data.evolution[row[1]] = temp_evolution[row[0]]
-        poke_edit_data.levelup[row[1]] = temp_levelup[row[0]]
-
-        #now update the forme's personal file pointer, then the base forme's pointer
-        poke_edit_data = personal_file_update(poke_edit_data, row[1], -1, row[2])
-        
-        #and the base species
-        poke_edit_data = personal_file_update(poke_edit_data, row[3], -1, row[2])
     poke_edit_data.sorted = True
     save_and_refresh_GARCs(poke_edit_data)
     return(poke_edit_data)

@@ -139,6 +139,9 @@ def base_species_combobox_search(event):
         for item in poke_edit_data.base_species_list:
             if(value.lower() in item.lower()):
                 data.append(item)
+            #sets combobox selected value if equal
+            if(value.lower() == item.lower()):
+                base_species_combobox.set(value.title())
             base_species_combobox['value'] = data
 
 def search_combobox_event(event, value, name):
@@ -152,6 +155,9 @@ def search_combobox_event(event, value, name):
         for item in poke_edit_data.master_formes_list:
             if(value.lower() in item.lower()):
                 data.append(item)
+            #sets combobox selected value if equal
+            if(value.lower() == item.lower()):
+                name.set(value.title())
             name['value'] = data
 
 
@@ -179,6 +185,9 @@ def model_combobox_search(event):
         for item in poke_edit_data.model_source_list:
             if(value.lower() in item.lower()):
                 data.append(item)
+            #sets combobox selected value if equal
+            if(value.lower() == item.lower()):
+                model_combobox.set(value.title())
             model_combobox['value'] = data
 
 for x in range(5):

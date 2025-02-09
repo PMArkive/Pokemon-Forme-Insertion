@@ -241,6 +241,24 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
 
     return(temp)
 
+def save_GARC(poke_edit_data, GARC_name):
+
+    temp = reconstruct_GARC(poke_edit_data, GARC_name)
+
+    match GARC_name:
+        case "personal":
+            file_path = poke_edit_data.personal_path
+        case "evolution":
+            file_path = poke_edit_data.evolution_path
+        case "levelup":
+            file_path = poke_edit_data.levelup_path
+        case "model":
+            file_path = poke_edit_data.model_path
+
+    with open(file_path, "w+b") as f:
+        f.write(bytes(temp))
+
+
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
 def load_GARC(poke_edit_data, garc_path, target, gameassert):
 

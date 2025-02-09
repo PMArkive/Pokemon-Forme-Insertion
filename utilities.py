@@ -2,6 +2,12 @@ import mmap
 import os
 import pathlib
 import time
+from struct import unpack
+
+
+#read input bytestring as little-endian, return integer
+def fromlittlebytesint(byte_input):
+    return(unpack("<I", byte_input)[0])
 
 #pull a given non-empty column from the given table and returns the max
 def max_of_column(input_table, column_number) -> int:
@@ -160,4 +166,3 @@ def sort_table_personal_files(to_sort_table):
         order_table.append(x)
         
     return(order_table)
-

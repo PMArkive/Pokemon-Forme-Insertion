@@ -544,22 +544,19 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
         #poke_edit_data.max_species_index is here the first alt forme because off-by-1, so stop here
         if(index == poke_edit_data.max_species_index + 1):
             break
+        #pull # of formes
+        forme_count = file[0x20]
+        forme_pointer = fromlittlebytesint[0x1C:0x1E]
         
-
-        with open(file_namer(poke_edit_data.personal_path, file, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
-            with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_READ) as personal_hex_map:
-                #pull # of formes
-                forme_count = personal_hex_map[0x20]
-                forme_pointer = personal_hex_map[0x1C] + 256*personal_hex_map[0x1D]
-                #if more than 1 AND forme pointer not 0, need to update those names in the array
-                if(forme_count > 1 and forme_pointer != 0):
-                    #this is the internal index number of the first alt forme, less 1 because we're shifted over one
+        #if more than 1 AND forme pointer not 0, need to update those names in the array
+        if(forme_count > 1 and forme_pointer != 0):
+            #this is the internal index number of the first alt forme, less 1 because we're shifted over one
                     
-                    #print(index, forme_count, forme_pointer)
-                    #first forme in forme count is the base, need to do 1 less than that. We call each forme <base species name> <alt forme count> (e.g. Mega Blastoise is "Blastoise 1")
-                    for x in range(0, forme_count - 1):
-                        #print(index, forme_count, forme_pointer, x)
-                        poke_edit_data.master_formes_list[forme_pointer + x] = poke_edit_data.base_species_list[index] + ' ' + str(x+1)
+            #print(index, forme_count, forme_pointer)
+            #first forme in forme count is the base, need to do 1 less than that. We call each forme <base species name> <alt forme count> (e.g. Mega Blastoise is "Blastoise 1")
+            for x in range(0, forme_count - 1):
+                #print(index, forme_count, forme_pointer, x)
+                poke_edit_data.master_formes_list[forme_pointer + x] = poke_edit_data.base_species_list[index] + ' ' + str(x+1)
     #print(poke_edit_data.master_formes_list)
     #if we loaded Model before Personal, need to load Model now
     if(poke_edit_data.run_model_later):

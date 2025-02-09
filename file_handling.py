@@ -1,5 +1,4 @@
 import shutil
-import mmap
 import os
 import shutil
 
@@ -9,18 +8,14 @@ from my_constants import *
 #updated target Personal file with new Forme Count and First Forme Pointer
 def personal_file_update(poke_edit_data, target_index, total_formes, start_location):
     #open target personal file
-    with open(file_namer(poke_edit_data.personal_path, target_index, poke_edit_data.personal_filename_length, poke_edit_data), "r+b") as f:
-        with mmap.mmap(f.fileno(), length=0, access=mmap.ACCESS_WRITE) as personal_hex_map:
-            personal_hex_map.flush()
-            #print('about to write ', new_forme_count)
+
+    #print('about to write ', new_forme_count)
             
-            #set these two edits to only write if they are bigger than 0, allows this function to be called and only update one of them
-            if(total_formes > 0):
-                personal_hex_map[0x20] = total_formes
-            if(start_location > 0):
-                personal_hex_map[0x1C], personal_hex_map[0x1D] = little_endian_chunks(start_location)
-            
-                personal_hex_map.flush()
+    #set these two edits to only write if they are bigger than 0, allows this function to be called and only update one of them
+    if(total_formes > 0):
+        poke_edit_data.personal[target_index][0x20] = total_formes
+    if(start_location > 0):
+        poke_edit_data.personal[target_index][0x1C:0x1E] = from_int_little_bytes(start_location, 0x2)
     return(poke_edit_data)
             
 '''#rebuilds personal compilation file

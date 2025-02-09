@@ -122,6 +122,11 @@ def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme
 #handles actual editing and moving of files for forme insertion
 def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, def_model, skip_model_insertion, update_forme_count):
     
+    if(not(poke_edit_data.sorted)):
+        print('Detected unsorted files, this might take a while.')
+        poke_edit_data = resort_file_structure(poke_edit_data)
+        return(poke_edit_data)
+
     #first unused file name
     start_location = 0
     
@@ -169,7 +174,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     #remember, .insert(x, y) places y at position x, e.g. .insert(150, y) places y at Mewtwo's position, and Mewtwo is now at 151
     #if this Pokemon has no formes, find the first entry of the next species with alt formes, and insert there
     if(old_forme_count == 1):
-        for index, pokemon in enumerate(poke_edit_data.personal[base_form_index:]):
+        for index, pokemon in enumerate(poke_edit_data.personal):
 
             cur_forme_pointer = from_little_bytes_int(pokemon[0x1C:0x1E])
 
@@ -185,7 +190,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     
     
     #repoint everyone after the inserted formes, just add new_forme_count to current pointer. 
-    for index, pokemon in enumerate(poke_edit_data.personal[base_form_index:]):
+    for index, pokemon in enumerate(poke_edit_data.personal):
         cur_forme_pointer = from_little_bytes_int(pokemon[0x1C:0x1E])
 
         #if current forme pointer is the same as the existing one for this species, we are not changing it, only incrementing the total number of formes

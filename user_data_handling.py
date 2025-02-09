@@ -82,6 +82,162 @@ def deconstruct_GARC(bindata, poke_edit_data):
         
         return(output_array)
 
+def reconstruct_GARC(poke_edit_data, GARC_name):
+    
+    match GARC_name:
+        case "personal":
+            out_file = poke_edit_data.personal
+        case "evolution":
+            out_file = poke_edit_data.evolution
+        case "levelup":
+            out_file = poke_edit_data.levelup
+            
+    file_count = len(out_file)
+
+    temp = [0x0]*0x1C
+    FAT0_offset = 0
+
+    #magic GARC
+    temp[0:4] = [0x43, 0x52, 0x41, 0x47]
+
+    #Endian
+    temp[0x08:0xA] = [0xFF, 0xFE]
+
+    #header length and Version
+    if(poke_edit_data in {"XY", "ORAS"}):
+        temp[0x4] = 0x1C
+        temp[0xB] = 0x04
+        FAT0_offset = 0x1C
+    else:
+        temp[0x4] = 0x24
+        temp[0xB] = 0x06
+        temp.extend([0]*8)
+        FAT0_offset = 0x24
+
+    #section count
+    temp[0xC] = 0x4
+
+    #FAT0 Header allocation
+    temp.extend([0]*(0xC + 4*file_count))
+    
+    #Magic FAT0
+    temp[FAT0_offset:FAT0_offset + 4] = [0x4F, 0x54, 0x41, 0x46]
+    
+    #FAT0 length
+    temp[FAT0_offset + 0x4:FAT0_offset + 0x8] = fromintlittlebytes(file_count*4 + 0xC, 0x4)
+
+    #file count
+    temp[FAT0_offset + 0x8:FAT0_offset + 0xA] = fromintlittlebytes(file_count, 0x2)
+
+    #padding
+    temp[FAT0_offset + 0xA:FAT0_offset + 0xC] = [0xFF, 0xFF]
+
+    #write FAT0 thing
+    pointer = FAT0_offset + 0xC
+    for x in range(file_count):
+        temp[pointer:pointer + 4] = fromintlittlebytes(x * 0x10, 0x4)
+        pointer += 0x4
+
+
+    #allocate BFAT, 0xC for header, then 0x10 per file
+    temp.extend([0]*(0xC + 0x10*file_count))
+    #magic BFAT
+    temp[pointer:pointer + 4] = [0x42, 0x54, 0x41, 0x46]
+
+    pointer +=4
+
+    #BFAT length
+    temp[pointer:pointer + 4] = fromintlittlebytes(file_count*0x10 + 0xC, 0x4)
+
+    pointer +=4
+
+    #BFAT file count
+    temp[pointer:pointer + 2] = temp[FAT0_offset + 0x8:FAT0_offset + 0xA]
+
+    pointer += 4
+
+    #before we write the BFAT blocks, add the FIMB header so we can write those blocks and actual files at once
+
+    #this will point at end of file
+    fimb_pointer = len(temp)
+
+    temp.extend([0]*(0xC))
+    
+    #magic FIMB
+    temp[fimb_pointer :fimb_pointer  + 4] = [0x42, 0x4D, 0x49, 0x46]
+    
+    fimb_pointer  += 4
+
+    #FIMB header length (3 high bytes are zero)
+    temp[pointer] = [0x0C]
+
+
+    #need to update this with final offset below
+    fimb_pointer  += 4
+
+
+    data_pointer = len(temp)
+
+    #update GARC header with data start
+
+    temp[0x10:0x14] = fromintlittlebytes(data_pointer, 0x4)
+
+    offset = 0
+    biggest_size = 0
+    for file in out_file:
+        
+        #padding
+        temp[pointer:pointer + 4] = [0x01, 0x00, 0x00, 0x00]
+
+        #offset start
+        temp[pointer + 4: pointer + 8] = fromintlittlebytes(offset, 0x4)
+
+        length = len(file)
+        
+        offset += length
+        biggest_size = max(length, biggest_size)
+        #offset end
+        temp[pointer + 8: pointer + 0xC] = fromintlittlebytes(offset, 0x4)
+
+        #length
+        temp[pointer + 0xC: pointer + 0x10] = fromintlittlebytes(length, 0x4)
+
+
+        #extend temp by length of file
+        temp.extend([0]*length)
+        #write file to location
+        temp[data_pointer: data_pointer + length] = file
+
+        data_pointer += length
+
+        pointer += 0x4
+
+    #write total length of files
+    temp[fimb_pointer:fimb_pointer + 4] = fromintlittlebytes(offset, 0x4)
+
+    #in GARC header, need to write file length, and largest file size (plus padded max and padding in gen 7)
+
+    #only write largest file size at FAT0_offset - 4
+    if(poke_edit_data in {"XY", "ORAS"}):
+        temp[FAT0_offset - 0x4:FAT0_offset] = fromintlittlebytes(biggest_size, 0x4)
+    
+    #starting from FAT0_offset - 0xC:
+    #max of 0x4 and max file size
+    #max file size
+    #padding (0x4)
+    else:
+        temp[FAT0_offset - 0xC:FAT0_offset - 0x8] = fromintlittlebytes(max(0x4,biggest_size), 0x4)
+        temp[FAT0_offset - 0x8:FAT0_offset - 0x4] = fromintlittlebytes(biggest_size, 0x4)
+        temp[FAT0_offset - 0x4:FAT0_offset] = fromintlittlebytes(0x4, 0x4)
+
+    #write total length of entire GARC
+    temp[0x14:0x18] = fromintlittlebytes(len(temp), 0x4)
+
+
+    return(temp)
+
+
+
 
 
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
@@ -92,10 +248,6 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
 
 
         file_array = deconstruct_GARC(binary_file_to_array(garc_path))
-
-
-
-
 
         match poke_edit_data.game:
             case "XY":
@@ -123,46 +275,15 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
             case "Evolution":
                 poke_edit_data.evolution_path= garc_path
                 poke_edit_data.evolution = file_array
+            case "Model":
+                poke_edit_data.model_path = garc_path
+                #pop model header into its own file
+                poke_edit_data.model_header = file_array.pop(0)
+                poke_edit_data.model = file_array
+
     else:
         print("Garc folder not found, unreadable, or empty")
     return(poke_edit_data)
-
-#loads list of filenames in extracted Model GARC if it exists, otherwise return empty array
-def load_GARC_old_or_model(poke_edit_data, garc_path, target, gameassert):
-
-    if(os.path.exists(garc_path)):
-        temp = []
-        ext = ''
-        #for each file there, pull the extension off, append the filename itself to the temp array.
-        for filename in os.listdir(garc_path):
-            filename_stripped, ext = os.path.splitext(filename)
-            temp.append(filename_stripped)
-        #this does assume that everything in the folder has the same extension, but that should be the case...
-        poke_edit_data.extracted_extension = ext
-    
-        if(len(temp) > 0):
-            poke_edit_data.game = gameassert
-            match poke_edit_data.game:
-                case "XY":
-                    poke_edit_data.max_species_index = 721
-                case "ORAS":
-                    poke_edit_data.max_species_index = 721
-                case "SM":
-                    poke_edit_data.max_species_index = 802
-                case "USUM":
-                    poke_edit_data.max_species_index = 807
-            poke_edit_data.model_path = garc_path
-            poke_edit_data.model = temp
-            poke_edit_data.model_filename_length = len(temp[0])
-
-            #check to see if model file is decompressed
-            if('dec_' in temp[-1]):
-                poke_edit_data.model_folder_prefix = 'dec_'
-            poke_edit_data = update_model_list(poke_edit_data)
-    else:
-        print("Garc folder not found, unreadable, or empty")
-    return(poke_edit_data)
-    
 
 def choose_GARC(poke_edit_data, target, gameassert):
     

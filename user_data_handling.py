@@ -721,6 +721,13 @@ def user_prompt_write_CSV(poke_edit_data, target):
         #move to start of bitflags, which is at 0x4*max nat dex
         start_offset = 4*(poke_edit_data.max_species_index + 1)
                     
+        try:
+            #move to start of bitflags, which is at 0x4*max nat dex
+            start_offset = 4*(poke_edit_data.max_species_index + 1)
+        #this basically just catches accidentally hitting the write button before loading anything
+        except Exception as e:
+            print(e)
+            return(poke_edit_data)
         #monotone increasing on both sides, so each bitflag bytepair goes to the next row with a model
         loaded_csv_row = 1
 

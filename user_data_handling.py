@@ -2,6 +2,7 @@ import csv
 from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 from utilities import *
 from file_handling import *
+from functools import reduce
 
 def binary_file_to_array(file_path):
     temp = []
@@ -86,11 +87,15 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
     
     match GARC_name:
         case "personal":
-            out_file = poke_edit_data.personal
+            #merges concatenated file for output
+            out_file = poke_edit_data.personal + [reduce(lambda i, j: i+j, poke_edit_data.personal)]
         case "evolution":
             out_file = poke_edit_data.evolution
         case "levelup":
             out_file = poke_edit_data.levelup
+        case "model":
+            #merges with header for output
+            out_file = poke_edit_data.model_header + poke_edit_data.model
             
     file_count = len(out_file)
 

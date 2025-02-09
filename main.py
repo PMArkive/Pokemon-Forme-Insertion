@@ -6,6 +6,12 @@ from utilities import *
 
 def pre_check(poke_edit_data):
     
+    if(not(poke_edit_data.sorted)):
+        print('Detected unsorted files, this might take a while.')
+        poke_edit_data = resort_file_structure(poke_edit_data)
+        print('Files are now sorted, please try again. If this message ever displays again for this file, there might be a problem.')
+        return(poke_edit_data)
+
     #get index of base species
     try:
         base_form_index = int(poke_edit_data.base_species_list.index(base_species_combobox.get().title()))

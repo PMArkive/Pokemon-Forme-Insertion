@@ -27,6 +27,8 @@ class Pokedata:
 
         self.run_model_later = False
 
+        self.sorted = False
+
         #on startup, initialize to empty
         #when load, initialize to full and current to full
         #when search, search in current for speed

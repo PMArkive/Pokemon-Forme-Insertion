@@ -83,6 +83,9 @@ def resort_file_structure(poke_edit_data):
     print('Internal tables updated with changes' + '\n')
 
     return(poke_edit_data)    
+    poke_edit_data.sorted = True
+    save_and_refresh_GARCs(poke_edit_data)
+    return(poke_edit_data)
 
 def check_adding_without_models_works(poke_edit_data, base_form_index, new_forme_count):
     

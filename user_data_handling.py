@@ -717,10 +717,6 @@ def user_prompt_write_CSV(poke_edit_data, target):
 
 
     if(len(poke_edit_data.master_list_csv[1]) == 5):
-                    
-        #move to start of bitflags, which is at 0x4*max nat dex
-        start_offset = 4*(poke_edit_data.max_species_index + 1)
-                    
         try:
             #move to start of bitflags, which is at 0x4*max nat dex
             start_offset = 4*(poke_edit_data.max_species_index + 1)
@@ -795,7 +791,7 @@ def load_game_cfg(poke_edit_data):
     11 = Names Table CSV
     '''
     
-    cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','Need to update Models','','','',"Max Species Index", "Names and Model File List CSV Path"]
+    cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','Need to update Models','','','Sorted',"Max Species Index", "Names and Model File List CSV Path"]
  
     try:
         with open(game_cfg_path, "r") as cfg:
@@ -818,7 +814,10 @@ def load_game_cfg(poke_edit_data):
         
         #evolution = cfg_array[7]
         #evolution = cfg_array[8]
-        #poke_edit_data.extracted_extension = cfg_array[9]
+        poke_edit_data.sorted = cfg_array[9]
+        if(poke_edit_data.sorted == '.bin'):
+            poke_edit_data.sorted = True
+
         poke_edit_data.max_species_index = cfg_array[10]
         poke_edit_data.csv_pokemon_list_path = cfg_array[11]
     except:
@@ -839,7 +838,7 @@ def load_game_cfg(poke_edit_data):
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
     poke_edit_data = load_names_from_CSV(poke_edit_data)
         
-    print('\n')
+    print('Sorted: ', poke_edit_data.sorted, '\n')
     print("Number of Species:", len(poke_edit_data.base_species_list) - 1, "(not including the Egg)")
     print("Number of Personal Entries:", len(poke_edit_data.master_formes_list) - 1, "(not including the Egg)")
     print("Number of Model Entries:", len(poke_edit_data.model_source_list))
@@ -877,7 +876,7 @@ def save_game_cfg(poke_edit_data, game_set = ''):
             cfg.write(temp_modelless + '\n')
             cfg.write('\n')#evolution = cfg_array[7]
             cfg.write('\n')#evolution = cfg_array[8]
-            cfg.write('\n')#cfg.write(poke_edit_data.extracted_extension + '\n')
+            cfg.write(poke_edit_data.sorted + '\n')
             cfg.write(str(poke_edit_data.max_species_index) + '\n')
             cfg.write(poke_edit_data.csv_pokemon_list_path)
         print('Config file saved to ' + game_cfg_path)

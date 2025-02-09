@@ -645,34 +645,7 @@ def user_prompt_load_CSV(poke_edit_data, target):
 
     return(poke_edit_data)
 
-def create_refresh_CSV(poke_edit_data, gameassert):
-    
 
-    #update game in data structure (in case this is the first thing selected)
-    if(gameassert in {'XY', 'ORAS', 'SM', 'USUM'}):
-        poke_edit_data.game = gameassert
-
-
-    if(not(poke_edit_data.game in {'XY', 'ORAS', 'SM', 'USUM'})):
-        print('Please select supported game')
-        return
-    try:
-        #poke_edit_data.csv_pokemon_list_path = asksaveasfilename(title='Select CSV file to RESET or CREATE your list of ' + target)
-    
-        match poke_edit_data.game:
-            case 'XY':
-                poke_edit_data.master_list_csv = xy_master_list_csv.copy()
-            case 'ORAS':
-                poke_edit_data.master_list_csv = oras_master_list_csv.copy()
-            case 'SM':
-                poke_edit_data.master_list_csv = oras_master_list_csv.copy()
-            case 'USUM':
-                poke_edit_data.master_list_csv = usum_master_list_csv.copy()
-        user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files')
-        poke_edit_data = load_names_from_CSV(poke_edit_data)
-    except:
-        print('No file selected')
-    return(poke_edit_data)
 
 def write_CSV(poke_edit_data, csv_path = ''):
 
@@ -760,6 +733,32 @@ def user_prompt_write_CSV(poke_edit_data, target):
 
     write_CSV(poke_edit_data, asksaveasfilename(title='Select ' + target + ' CSV', defaultextension='.csv',filetypes= [('CSV','.csv')]))
     
+    return(poke_edit_data)
+
+def create_refresh_CSV(poke_edit_data, gameassert):
+    
+
+    #update game in data structure (in case this is the first thing selected)
+    if(gameassert in {'XY', 'ORAS', 'SM', 'USUM'}):
+        poke_edit_data.game = gameassert
+
+
+    if(not(poke_edit_data.game in {'XY', 'ORAS', 'SM', 'USUM'})):
+        print('Please select supported game')
+        return
+    match poke_edit_data.game:
+        case 'XY':
+            poke_edit_data.master_list_csv = xy_master_list_csv.copy()
+        case 'ORAS':
+            poke_edit_data.master_list_csv = oras_master_list_csv.copy()
+        case 'SM':
+            poke_edit_data.master_list_csv = oras_master_list_csv.copy()
+        case 'USUM':
+            poke_edit_data.master_list_csv = usum_master_list_csv.copy()
+
+    user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files')
+    poke_edit_data = load_names_from_CSV(poke_edit_data)
+
     return(poke_edit_data)
 
 def load_game_cfg(poke_edit_data):

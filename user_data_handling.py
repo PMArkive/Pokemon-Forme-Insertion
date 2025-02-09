@@ -347,12 +347,9 @@ def choose_GARC(poke_edit_data, target, gameassert):
                return
 
 
-    if(target == "Model"):
-        folder_path = askdirectory(title='Select extracted Model GARC Folder, original file located at a/' + targetpath)
-        poke_edit_data = load_GARC_old_or_model(poke_edit_data, folder_path, target, gameassert)
-    else:
-        folder_path = askopenfilename(title='Select extracted ' + target + ' GARC Folder, a/' + targetpath)
-        poke_edit_data = load_GARC(poke_edit_data, folder_path, target, gameassert)
+
+    folder_path = askopenfilename(title='Select ' + target + ' GARC, a/' + targetpath)
+    poke_edit_data = load_GARC(poke_edit_data, folder_path, target, gameassert)
     
     return(poke_edit_data)
 

@@ -1,4 +1,3 @@
-import mmap
 import os
 import pathlib
 import time
@@ -6,11 +5,11 @@ from struct import unpack
 
 
 #read input bytestring as little-endian, return integer
-def fromlittlebytesint(byte_input):
+def from_little_bytes_int(byte_input):
     return(unpack("<I", byte_input)[0])
 
 #convert integer input into little-endian hex with given padding (default 0x4 bytes)
-def fromintlittlebytes(decimal_number, padding = 0x4):
+def from_int_little_bytes(decimal_number, padding = 0x4):
     return(decimal_number.to_bytes(padding, 'little'))
 
 #pull a given non-empty column from the given table and returns the max

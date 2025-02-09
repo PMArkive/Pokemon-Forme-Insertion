@@ -22,6 +22,8 @@ class Pokedata:
         self.evolution_table_length = 0
 
         self.model = []
+        self.model_header = []
+
         self.modelless_exists = True
         self.model_folder_prefix = ''
 

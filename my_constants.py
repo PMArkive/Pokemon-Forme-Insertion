@@ -15,9 +15,12 @@ class Pokedata:
         self.max_species_index = 0
         self.personal = []
         self.personal_table_length = 0
+
         self.levelup = []
+
         self.evolution = []
         self.evolution_table_length = 0
+
         self.model = []
         self.modelless_exists = True
         self.model_folder_prefix = ''
@@ -39,9 +42,6 @@ class Pokedata:
         self.current_evolution_list = ['Bulbasaur']
         self.current_model_source_list = ['Bulbasaur']
 
-        self.personal_filename_length = 0
-        self.evolution_filename_length = 0
-        self.levelup_filename_length = 0
         self.model_filename_length = 0
 
         self.extracted_extension = '.bin'

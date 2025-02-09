@@ -813,15 +813,6 @@ def load_game_cfg(poke_edit_data):
         poke_edit_data.csv_pokemon_list_path = cfg_array[11]
     except:
         print('Config file missing lines, loaded what was there')
-    
-    if(poke_edit_data.game in {'XY', 'ORAS'}):
-        poke_edit_data.evolution_table_length = 0x30
-        poke_edit_data.personal_table_length = 0x50
-    elif(poke_edit_data.game in {'SM', 'USUM'}):
-        poke_edit_data.evolution_table_length = 0x40
-        poke_edit_data.personal_table_length = 0x54
-    else:
-        print('Warning: Game not correctly set in cfg, ensure a game is selected, then reload any GARC')
         
     try:
         print('Data loaded as follows:')

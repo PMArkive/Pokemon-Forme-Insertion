@@ -358,10 +358,5 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
     if(poke_edit_data.run_model_later):
         poke_edit_data = update_model_list(poke_edit_data)
         
-    #copy this into the current list to initialize properly (particularly when loading from cfg)
-    poke_edit_data.current_base_species_list = poke_edit_data.base_species_list.copy()
-    poke_edit_data.current_personal_list = poke_edit_data.master_formes_list.copy()
-    poke_edit_data.current_levelup_list = poke_edit_data.master_formes_list.copy()
-    poke_edit_data.current_evolution_list = poke_edit_data.master_formes_list.copy()
     
     return(poke_edit_data)

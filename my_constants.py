@@ -14,12 +14,10 @@ class Pokedata:
         self.game = ''
         self.max_species_index = 0
         self.personal = []
-        self.personal_table_length = 0
 
         self.levelup = []
 
         self.evolution = []
-        self.evolution_table_length = 0
 
         self.model = []
         self.model_header = []
@@ -38,14 +36,6 @@ class Pokedata:
 
         self.master_list_csv = []
         
-        self.current_base_species_list =  ['Bulbasaur']
-        self.current_personal_list = ['Bulbasaur']
-        self.current_levelup_list = ['Bulbasaur']
-        self.current_evolution_list = ['Bulbasaur']
-        self.current_model_source_list = ['Bulbasaur']
-
-        self.model_filename_length = 0
-
         self.extracted_extension = '.bin'
 
 

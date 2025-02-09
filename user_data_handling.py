@@ -16,6 +16,73 @@ def binary_file_to_array(file_path):
         return(temp)
 
 
+def deconstruct_GARC(bindata, poke_edit_data):
+        #header:
+        # 0x4 Header length (4 bytes)
+        # 0x10 Data start (4 bytes)
+        # 0x14 total file length (4 bytes)
+
+        #then depends on version
+        
+        # V4
+        # 0x18 largest file size (unpadded)
+
+        # V6
+
+        # 0x18 largest file size (with padding if it exists)
+        # 0x1C largest file size (without padding, virtually always equal to the above for our purposes)
+        # 0x20 Padding value (usually 0x4)
+
+        #counting from end of whatever version you're in (so 0x4 = 0x1C in v4, 0x24 in v6)
+
+        # 0x8 FAT0 header length (counting from 0x4)
+        # 0xC, number of files (2 bytes)
+        # from 0x10, 4 bytes per file, each one is 0x10 times file number (start from 0)
+        
+
+        #from end of above, 0x4 - header length
+        # 0x8 - file count, then 
+        # then for each file, 0x01 00 00 00, then offset start, offset end, and file length, offset counting first byte of first file as 0x0
+
+        #finally, last magic word, then header length (0xC), then length of actual data (same as final offset end from previous section
+
+
+        #get Fat0 offset
+        FAT0_offset = 0
+        if(poke_edit_data.game in {"XY", "ORAS"}):
+           FAT0_offset = 0x1C
+        else:
+           FAT0_offset = 0x24
+        
+      
+        FATB_offset = FAT0_offset + fromlittlebytesint(bindata[FAT0_offset + 0x4:FAT0_offset + 0x8])
+
+        file_count = fromlittlebytesint(bindata[FAT0_offset + 0x8:FAT0_offset + 0xA])
+
+        data_offset = fromlittlebytesint(bindata[0x10:0x14])
+
+
+        output_array = []
+
+        #0xC is start of the actual file location/length data. The offset in each block we want to read is 0xC. So add 0x18
+        FATB_offset += 0x18
+
+        #iterate over the files, pulling the length from the FATB data, each file gets its own array in temp
+        for file in range(file_count):
+            
+            #get length of current file
+            file_length = fromlittlebytesint(bindata[FATB_offset])
+
+            #append the file to a new entry in output array
+            output_array.append(bindata[data_offset:data_offset + file_length])
+            
+            #move to next file in FATB data
+            FATB_offset += 0x10
+
+        
+        return(output_array)
+
+
 
 #loads list of filenames in extracted GARC if it exists, otherwise return empty array
 def load_GARC(poke_edit_data, garc_path, target, gameassert):

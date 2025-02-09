@@ -1,7 +1,5 @@
 import os
 import pathlib
-import time
-from struct import unpack
 
 
 #read input bytestring as little-endian, return integer
@@ -61,43 +59,6 @@ def silentremove(filename: str) -> None:
 def little_endian_chunks(big_input: int) -> tuple[int, int]:
     little = big_input.to_bytes(2, byteorder="little")
     return (little[0], little[1])
-
-
-#calls os.rename. if file is in use, it will wait for various amounts of seconds then try again
-def dropbox_workaround_file_rename(old_name, new_name):
-    
-    try:
-        os.rename(old_name, new_name)
-        return
-    except:
-        time.sleep(1)
-        try:
-            os.rename(old_name, new_name)
-        except:
-            time.sleep(5)
-            try:
-                os.rename(old_name, new_name)
-            except:
-                time.sleep(10)
-                try:
-                    os.rename(old_name, new_name)
-                except:
-                    time.sleep(30)
-                    try:
-                        os.rename(old_name, new_name)
-                    except:
-                        print('File ' + old_name + 'is open in some program, being uploaded by Dropbox, etc.' + 'This program will now wait another 120 seconds (already waited for 46).')
-                        time.sleep(120)
-                        try:
-                            os.rename(old_name, new_name)
-                        except:
-                            print('Will try one more time, waiting for 360 seconds')
-                            time.sleep(360)
-                            try:
-                                os.rename(old_name, new_name)
-                            except:
-                                print('That did not work. I am going to throw an error now. I was partway through renaming files, so you should delete those folders and restore from your last good GARC.')
-                            
 
 
 #returns list of specified columns from specified table

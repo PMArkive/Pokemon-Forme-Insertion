@@ -1,9 +1,6 @@
-import shutil
-import os
 from tkinter.filedialog import asksaveasfile
 from my_constants import *
 from user_data_handling import *
-from itertools import repeat
 
 
 
@@ -166,7 +163,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     #we now have the file addresses of all the places we need to update for all but the model file
                     
     
-    print("Initializing new game data")
+    print("Copying new game data")
     #now initialize the newly added formes
 
     #remember, .insert(x, y) places y at position x, e.g. .insert(150, y) places y at Mewtwo's position, and Mewtwo is now at 151
@@ -180,26 +177,30 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             if(index > base_form_index and cur_forme_pointer != 0):
                 new_forme_pointer = cur_forme_pointer
                 break
-        #otherrwise, we are appending to the very end
+        #otherwise, we are appending to the very end
         new_forme_pointer = len(poke_edit_data.personal)
     else:
        #if more than just base forme, the last alt forme is at forme_pointer + (forme_count - 2), 1 taken out for base forme, and then the first alt forme is forme_pointer + 0. We need to insert from next thing, forme_pointer + 1, so just -1
         new_forme_pointer = old_forme_pointer + len(existing_formes_array) - 1
     
     
-    #repoint everyone after the inserted formes, just add new_forme_count to current pointer. Also repoint base forme and any existing formes, and update the total formes
+    #repoint everyone after the inserted formes, just add new_forme_count to current pointer. 
     for index, pokemon in enumerate(poke_edit_data.personal[base_form_index:]):
         cur_forme_pointer = from_little_bytes_int(pokemon[0x1C:0x1E])
-        
-        #if the forme pointer is pushed forwards, increment it
-        if(cur_forme_pointer >= new_forme_pointer):
-            pokemon[0x1C:0x1E] = from_int_little_bytes(cur_forme_pointer + new_forme_count, 0x2)
-        elif(cur_forme_pointer == old_forme_pointer):
-            pokemon[0x1C:0x1E] = from_int_little_bytes(new_forme_pointer, 0x2)
+
+        #if current forme pointer is the same as the existing one for this species, we are not changing it, only incrementing the total number of formes
+        if(cur_forme_pointer == old_forme_pointer):
             poke_edit_data.personal[base_form_index][0x20] = total_formes
+        #otherwise, if the forme pointer is pushed forwards, increment it
+        elif(cur_forme_pointer >= new_forme_pointer):
+            pokemon[0x1C:0x1E] = from_int_little_bytes(cur_forme_pointer + new_forme_count, 0x2)
 
     for x in range(new_forme_count):
         poke_edit_data.personal.insert(new_forme_pointer + x, poke_edit_data.personal[personal_source_index])
+        #if we are not using the base forme, we need to correct the pointer and forme count
+        if(personal_source_index != base_form_index):
+            poke_edit_data.personal[new_forme_pointer + x][0x1C:0x1E] = from_int_little_bytes(new_forme_pointer, 0x2)
+            poke_edit_data.personal[new_forme_pointer + x][0x20] = total_formes
         poke_edit_data.levelup.insert(new_forme_pointer + x, poke_edit_data.levelup[levelup_source_index])
         poke_edit_data.evolution.insert(new_forme_pointer + x, poke_edit_data.evolution[evolution_source_index])
     start_location = new_forme_pointer
@@ -208,7 +209,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     if(skip_model_insertion):
         poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, True)
     else:
-        print("Initializing new model data")
+        print("Copying new model data")
     
         #create new sets of model files
         #don't forget model index starts from 0 unlike everything else
@@ -237,23 +238,22 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         
 
         #exclude model header since that's not in my model file list structure (otherwise start file needs 1 added to it)
-        #destination will be done via insert, so we need to add 1 and insert there
+        #destination will be done via insert
         if(poke_edit_data.game == 'XY'):
             model_start_file = 8*(model_source_index)+3
-            model_dest_file = 8*total_previous_models+3+1
+            model_dest_file = 8*total_previous_models+3
             model_file_count = 8
         elif(poke_edit_data.game == "ORAS"):
             #Need someone to check
             model_start_file = 8*(model_source_index)+2
-            model_dest_file = 8*total_previous_models+2+1
+            model_dest_file = 8*total_previous_models+2
             model_file_count = 8
         #assume SM or USUM
         else:
             model_start_file = 9*(model_source_index)
-            model_dest_file = 9*total_previous_models+1
+            model_dest_file = 9*total_previous_models
             model_file_count = 9
             
-        print("Creating new model files")
 
         #because everything will move, make a temp and then stick it in there
         temp = []
@@ -267,7 +267,6 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             
 
             
-        print("New model files initialized")
         print("Updating model header")
             
         #Now need to update model header

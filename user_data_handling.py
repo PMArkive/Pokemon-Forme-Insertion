@@ -261,40 +261,43 @@ def load_GARC(poke_edit_data, garc_path, target, gameassert):
     if(os.path.exists(garc_path)):
         poke_edit_data.game = gameassert
 
+        try:
+            file_array = deconstruct_GARC(binary_file_to_array(garc_path), poke_edit_data)
 
-        file_array = deconstruct_GARC(binary_file_to_array(garc_path))
+            match poke_edit_data.game:
+                case "XY":
+                    poke_edit_data.max_species_index = 721
+                case "ORAS":
+                    poke_edit_data.max_species_index = 721
+                case "SM":
+                    poke_edit_data.max_species_index = 802
+                case "USUM":
+                    poke_edit_data.max_species_index = 807
 
-        match poke_edit_data.game:
-            case "XY":
-                poke_edit_data.max_species_index = 721
-            case "ORAS":
-                poke_edit_data.max_species_index = 721
-            case "SM":
-                poke_edit_data.max_species_index = 802
-            case "USUM":
-                poke_edit_data.max_species_index = 807
+            match target:
+                case "Personal":
+                    poke_edit_data.personal_path = garc_path
 
-        match target:
-            case "Personal":
-                poke_edit_data.personal_path = garc_path
+                    #delete compilation file
+                    file_array.pop()
 
-                #delete compilation file
-                file_array.pop()
+                    poke_edit_data.personal = file_array
+                    poke_edit_data = update_species_list(poke_edit_data)
+                case "Levelup":
+                    poke_edit_data.levelup_path = garc_path
+                    poke_edit_data.levelup = file_array
 
-                poke_edit_data.personal = file_array
-                poke_edit_data = update_species_list(poke_edit_data)
-            case "Levelup":
-                poke_edit_data.levelup_path = garc_path
-                poke_edit_data.levelup = file_array
-
-            case "Evolution":
-                poke_edit_data.evolution_path= garc_path
-                poke_edit_data.evolution = file_array
-            case "Model":
-                poke_edit_data.model_path = garc_path
-                #pop model header into its own file
-                poke_edit_data.model_header = file_array.pop(0)
-                poke_edit_data.model = file_array
+                case "Evolution":
+                    poke_edit_data.evolution_path= garc_path
+                    poke_edit_data.evolution = file_array
+                case "Model":
+                    poke_edit_data.model_path = garc_path
+                    #pop model header into its own file
+                    poke_edit_data.model_header = file_array.pop(0)
+                    poke_edit_data.model = file_array
+        except Exception as e:
+            print(e)
+            return(poke_edit_data)
 
     else:
         print("Garc folder not found, unreadable, or empty")

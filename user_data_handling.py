@@ -788,7 +788,7 @@ def load_game_cfg(poke_edit_data):
     11 = Names Table CSV
     '''
     
-    cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','Need to update Models','','',"Extension","Max Species Index", "Names and Model File List CSV Path"]
+    cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','Need to update Models','','','',"Max Species Index", "Names and Model File List CSV Path"]
  
     try:
         with open(game_cfg_path, "r") as cfg:
@@ -811,7 +811,7 @@ def load_game_cfg(poke_edit_data):
         
         #evolution = cfg_array[7]
         #evolution = cfg_array[8]
-        poke_edit_data.extracted_extension = cfg_array[9]
+        #poke_edit_data.extracted_extension = cfg_array[9]
         poke_edit_data.max_species_index = cfg_array[10]
         poke_edit_data.csv_pokemon_list_path = cfg_array[11]
     except:
@@ -870,7 +870,7 @@ def save_game_cfg(poke_edit_data, game_set = ''):
             cfg.write(temp_modelless + '\n')
             cfg.write('\n')#evolution = cfg_array[7]
             cfg.write('\n')#evolution = cfg_array[8]
-            cfg.write(poke_edit_data.extracted_extension + '\n')
+            cfg.write('\n')#cfg.write(poke_edit_data.extracted_extension + '\n')
             cfg.write(str(poke_edit_data.max_species_index) + '\n')
             cfg.write(poke_edit_data.csv_pokemon_list_path)
         print('Config file saved to ' + game_cfg_path)

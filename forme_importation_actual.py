@@ -57,9 +57,9 @@ def resort_file_structure(poke_edit_data):
     for row in renaming_order_table:
 
         #move files
-        poke_edit_data.personal.row[1] = temp_personal[row[0]]
-        poke_edit_data.evolution.row[1] = temp_evolution[row[0]]
-        poke_edit_data.levelup.row[1] = temp_levelup[row[0]]
+        poke_edit_data.personal[row[1]] = temp_personal[row[0]]
+        poke_edit_data.evolution[row[1]] = temp_evolution[row[0]]
+        poke_edit_data.levelup[row[1]] = temp_levelup[row[0]]
 
         #now update the forme's personal file pointer, then the base forme's pointer
         poke_edit_data = personal_file_update(poke_edit_data, row[1], -1, row[2])
@@ -203,7 +203,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         #The first and second bytes are a 2-byte little endian that is the *total number of models up to but not including the first model for that species*. So Bulby is 00 00 01 01 (no models before it), Venusaur is 02 00 03 07 (2 models before it, 3 models for Venusaur (male, female, and Mega), and has both gendered and non-gendered models
             
         #number of models on pokemon getting new forms + total number of models of all prior Pokemon
-        total_previous_models = from_little_bytes_int(poke_edit_data.model_header[4*(base_form_index - 1) + 2]) + from_little_bytes_int(poke_edit_data.model_header[4*(base_form_index - 1):4*(base_form_index - 1) + 2])
+        total_previous_models = poke_edit_data.model_header[4*(base_form_index - 1) + 2] + from_little_bytes_int(poke_edit_data.model_header[4*(base_form_index - 1):4*(base_form_index - 1) + 2])
             
         #if going with default model, need to grab the base-forme's model for model_source_index
         if(def_model):
@@ -325,7 +325,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
 
         target_bitflag_offset = 2*(total_previous_models) + start_of_byte_flag_table + 1
 
-        for x in new_forme_count:
+        for x in range(new_forme_count):
             poke_edit_data.model_header.insert(target_bitflag_offset,model_source_flags[1])
             poke_edit_data.model_header.insert(target_bitflag_offset, model_source_flags[0])
 

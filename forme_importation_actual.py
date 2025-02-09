@@ -98,7 +98,7 @@ def resort_file_structure(poke_edit_data):
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.personal_path, "Personal", poke_edit_data.game)
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.levelup_path, "Levelup", poke_edit_data.game)
     poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.evolution_path, "Evolution", poke_edit_data.game)
-    poke_edit_data = load_GARC(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
+    poke_edit_data = load_GARC_old_or_model(poke_edit_data, poke_edit_data.model_path, "Model", poke_edit_data.game)
     print('Internal tables updated with changes' + '\n')
 
     return(poke_edit_data)        

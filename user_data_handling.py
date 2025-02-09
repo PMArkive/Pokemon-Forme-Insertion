@@ -790,9 +790,12 @@ def load_game_cfg(poke_edit_data):
     
     cfg_desc = ["Game", "Personal path", "Levelup path", "Evolution path", "Pokemon Model/Texture path",'','Need to update Models','','',"Extension","Max Species Index", "Names and Model File List CSV Path"]
  
-    #try:
-    with open(game_cfg_path, "r") as cfg:
-        cfg_array = [line.rstrip() for line in cfg]
+    try:
+        with open(game_cfg_path, "r") as cfg:
+            cfg_array = [line.rstrip() for line in cfg]
+    except Exception as e:
+        print(e)
+        return(poke_edit_data)
     try:
         poke_edit_data.game = cfg_array[0]
         poke_edit_data.personal_path = cfg_array[1]

@@ -5,17 +5,12 @@ from file_handling import *
 from functools import reduce
 
 def binary_file_to_array(file_path):
-    temp = []
+
     with open(file_path, "r+b") as f:
         f.seek(0, os.SEEK_END)
         file_end = f.tell()
         f.seek(0, 0)
-        block = f.read(file_end)
-		
-        for ch in block:
-            temp.append(ch)
-        return(temp)
-
+        return(list(f.read(file_end)))
 
 def deconstruct_GARC(bindata, poke_edit_data):
         #header:

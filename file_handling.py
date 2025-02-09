@@ -347,7 +347,7 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
             break
         #pull # of formes
         forme_count = file[0x20]
-        forme_pointer = fromlittlebytesint(file[0x1C:0x1E])
+        forme_pointer = from_little_bytes_int(file[0x1C:0x1E])
         
         #if more than 1 AND forme pointer not 0, need to update those names in the array
         if(forme_count > 1 and forme_pointer != 0):

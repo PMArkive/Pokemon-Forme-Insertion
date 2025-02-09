@@ -55,11 +55,11 @@ def deconstruct_GARC(bindata, poke_edit_data):
            FAT0_offset = 0x24
         
       
-        FATB_offset = FAT0_offset + fromlittlebytesint(bindata[FAT0_offset + 0x4:FAT0_offset + 0x8])
+        FATB_offset = FAT0_offset + from_little_bytes_int(bindata[FAT0_offset + 0x4:FAT0_offset + 0x8])
 
-        file_count = fromlittlebytesint(bindata[FAT0_offset + 0x8:FAT0_offset + 0xA])
+        file_count = from_little_bytes_int(bindata[FAT0_offset + 0x8:FAT0_offset + 0xA])
 
-        data_offset = fromlittlebytesint(bindata[0x10:0x14])
+        data_offset = from_little_bytes_int(bindata[0x10:0x14])
 
 
         output_array = []
@@ -71,7 +71,7 @@ def deconstruct_GARC(bindata, poke_edit_data):
         for file in range(file_count):
             
             #get length of current file
-            file_length = fromlittlebytesint(bindata[FATB_offset])
+            file_length = from_little_bytes_int(bindata[FATB_offset])
 
             #append the file to a new entry in output array
             output_array.append(bindata[data_offset:data_offset + file_length])
@@ -124,10 +124,10 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
     temp[FAT0_offset:FAT0_offset + 4] = [0x4F, 0x54, 0x41, 0x46]
     
     #FAT0 length
-    temp[FAT0_offset + 0x4:FAT0_offset + 0x8] = fromintlittlebytes(file_count*4 + 0xC, 0x4)
+    temp[FAT0_offset + 0x4:FAT0_offset + 0x8] = from_int_little_bytes(file_count*4 + 0xC, 0x4)
 
     #file count
-    temp[FAT0_offset + 0x8:FAT0_offset + 0xA] = fromintlittlebytes(file_count, 0x2)
+    temp[FAT0_offset + 0x8:FAT0_offset + 0xA] = from_int_little_bytes(file_count, 0x2)
 
     #padding
     temp[FAT0_offset + 0xA:FAT0_offset + 0xC] = [0xFF, 0xFF]
@@ -135,7 +135,7 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
     #write FAT0 thing
     pointer = FAT0_offset + 0xC
     for x in range(file_count):
-        temp[pointer:pointer + 4] = fromintlittlebytes(x * 0x10, 0x4)
+        temp[pointer:pointer + 4] = from_int_little_bytes(x * 0x10, 0x4)
         pointer += 0x4
 
 
@@ -147,7 +147,7 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
     pointer +=4
 
     #BFAT length
-    temp[pointer:pointer + 4] = fromintlittlebytes(file_count*0x10 + 0xC, 0x4)
+    temp[pointer:pointer + 4] = from_int_little_bytes(file_count*0x10 + 0xC, 0x4)
 
     pointer +=4
 
@@ -180,7 +180,7 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
 
     #update GARC header with data start
 
-    temp[0x10:0x14] = fromintlittlebytes(data_pointer, 0x4)
+    temp[0x10:0x14] = from_int_little_bytes(data_pointer, 0x4)
 
     offset = 0
     biggest_size = 0
@@ -190,17 +190,17 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
         temp[pointer:pointer + 4] = [0x01, 0x00, 0x00, 0x00]
 
         #offset start
-        temp[pointer + 4: pointer + 8] = fromintlittlebytes(offset, 0x4)
+        temp[pointer + 4: pointer + 8] = from_int_little_bytes(offset, 0x4)
 
         length = len(file)
         
         offset += length
         biggest_size = max(length, biggest_size)
         #offset end
-        temp[pointer + 8: pointer + 0xC] = fromintlittlebytes(offset, 0x4)
+        temp[pointer + 8: pointer + 0xC] = from_int_little_bytes(offset, 0x4)
 
         #length
-        temp[pointer + 0xC: pointer + 0x10] = fromintlittlebytes(length, 0x4)
+        temp[pointer + 0xC: pointer + 0x10] = from_int_little_bytes(length, 0x4)
 
 
         #extend temp by length of file
@@ -213,25 +213,25 @@ def reconstruct_GARC(poke_edit_data, GARC_name):
         pointer += 0x4
 
     #write total length of files
-    temp[fimb_pointer:fimb_pointer + 4] = fromintlittlebytes(offset, 0x4)
+    temp[fimb_pointer:fimb_pointer + 4] = from_int_little_bytes(offset, 0x4)
 
     #in GARC header, need to write file length, and largest file size (plus padded max and padding in gen 7)
 
     #only write largest file size at FAT0_offset - 4
     if(poke_edit_data in {"XY", "ORAS"}):
-        temp[FAT0_offset - 0x4:FAT0_offset] = fromintlittlebytes(biggest_size, 0x4)
+        temp[FAT0_offset - 0x4:FAT0_offset] = from_int_little_bytes(biggest_size, 0x4)
     
     #starting from FAT0_offset - 0xC:
     #max of 0x4 and max file size
     #max file size
     #padding (0x4)
     else:
-        temp[FAT0_offset - 0xC:FAT0_offset - 0x8] = fromintlittlebytes(max(0x4,biggest_size), 0x4)
-        temp[FAT0_offset - 0x8:FAT0_offset - 0x4] = fromintlittlebytes(biggest_size, 0x4)
-        temp[FAT0_offset - 0x4:FAT0_offset] = fromintlittlebytes(0x4, 0x4)
+        temp[FAT0_offset - 0xC:FAT0_offset - 0x8] = from_int_little_bytes(max(0x4,biggest_size), 0x4)
+        temp[FAT0_offset - 0x8:FAT0_offset - 0x4] = from_int_little_bytes(biggest_size, 0x4)
+        temp[FAT0_offset - 0x4:FAT0_offset] = from_int_little_bytes(0x4, 0x4)
 
     #write total length of entire GARC
-    temp[0x14:0x18] = fromintlittlebytes(len(temp), 0x4)
+    temp[0x14:0x18] = from_int_little_bytes(len(temp), 0x4)
 
 
     return(temp)
@@ -394,12 +394,12 @@ def rebuild_csv(poke_edit_data):
 
 
 
-        temp_personal_pointer_garc = fromlittlebytesint(poke_edit_data.personal[current_base_species][0x1C:0x1E])
+        temp_personal_pointer_garc = from_little_bytes_int(poke_edit_data.personal[current_base_species][0x1C:0x1E])
          #if the pointer is 0 but the forme count is >1, then only 1 personal file
         if(temp_personal_pointer_garc in {'0', '', 0, 0x0}):
             temp_personal_instance_garc = 0x1
         else:
-            temp_personal_instance_garc = fromlittlebytesint(poke_edit_data.personal[current_base_species][0x20])
+            temp_personal_instance_garc = from_little_bytes_int(poke_edit_data.personal[current_base_species][0x20])
 
         missing_personal_count = temp_personal_instance_garc - temp_personal_instance_csv
         missing_model_count = species_model_count[current_base_species - 1] - temp_model_instance_csv

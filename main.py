@@ -10,7 +10,7 @@ def pre_check(poke_edit_data):
     try:
         base_form_index = int(poke_edit_data.base_species_list.index(base_species_combobox.get().title()))
     except:
-        print('Error,',base_species_combobox.get(),'not found.')
+        print('Error at base species,',base_species_combobox.get(),'not found.')
         return
 
     #number of formes to add
@@ -23,9 +23,9 @@ def pre_check(poke_edit_data):
             #this is not the correct index in the Model file structure, that will be computed later
             model_source_index = base_form_index
         else:
-            model_source_index = int(poke_edit_data.base_species_list.index(model_combobox.get().title()))
+            model_source_index = int(poke_edit_data.model_source_list.index(model_combobox.get().title()))
     except:
-        print('Error,',model_combobox.get(),'not found.')
+        print('Error at model,',model_combobox.get(),'not found.')
         return
 
     #personal
@@ -34,9 +34,9 @@ def pre_check(poke_edit_data):
             #this is not the correct index in the Model file structure, that will be computed later
             personal_source_index = base_form_index
         else:
-            personal_source_index = int(poke_edit_data.base_species_list.index(personal_combobox.get().title()))
+            personal_source_index = int(poke_edit_data.master_formes_list.index(personal_combobox.get().title()))
     except:
-        print('Error,',personal_combobox.get(),'not found.')
+        print('Error at personal,',personal_combobox.get(),'not found.')
         return
 
     #levelup
@@ -45,9 +45,9 @@ def pre_check(poke_edit_data):
             #this is not the correct index in the Model file structure, that will be computed later
             levelup_source_index = base_form_index
         else:
-            levelup_source_index = int(poke_edit_data.base_species_list.index(levelup_combobox.get().title()))
+            levelup_source_index = int(poke_edit_data.master_formes_list.index(levelup_combobox.get().title()))
     except:
-        print('Error,',levelup_combobox.get(),'not found.')
+        print('Error at levelup,',levelup_combobox.get(),'not found.')
         return
 
     #evolution
@@ -56,9 +56,9 @@ def pre_check(poke_edit_data):
             #this is not the correct index in the Model file structure, that will be computed later
             evolution_source_index = base_form_index
         else:
-            evolution_source_index = int(poke_edit_data.base_species_list.index(evolution_combobox.get().title()))
+            evolution_source_index = int(poke_edit_data.master_formes_list.index(evolution_combobox.get().title()))
     except:
-        print('Error,',evolution_combobox.get(),'not found.')
+        print('Error at evolution,',evolution_combobox.get(),'not found.')
         return
     
     #if skip_model_creation_bool is true, checkbox is unclicked, and we want to try skipping model insertion. If it's false (as per default), just set to false, no need for further check
@@ -206,6 +206,18 @@ cfg_save = Button(root, text = 'Save CFG & CSV', command = lambda: save_game_cfg
 cfg_save.grid(row = 1, column = 0, sticky="ew")
 
 
+#CSV file path Selection
+
+load_pokelist_csv_button = Button(root, text = '(Re)Load CSV', command = lambda: [user_prompt_load_CSV(poke_edit_data, 'Pokemon Names and Files'), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+load_pokelist_csv_button.grid(row = 0, column = 6, sticky="ew")
+
+save_pokelist_csv_button = Button(root, text = 'Create/Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
+
+#create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
+#create_pokelist_csv_button.grid(row = 4, column = 6, sticky="ew")
+
+
 #select game
 games = ["XY", "ORAS", "SM", "USUM"]
 
@@ -236,82 +248,41 @@ evolution_load.grid(row = 0, column = 5, sticky="ew")
 base_species_label = Label(root, text = "Select Species", height = 2, width = 12, padx = 4)
 base_species_label.grid(row = 2, column = 0, sticky="nsew")
 
+#Model Selection header
+model_label = Label(root, text = "Custom Model", height = 2, width = 12, padx = 4)
+model_label.grid(row = 2, column = 2, sticky="nsew")
+#Personal Selection header
+personal_label = Label(root, text = "Custom Personal", height = 2, width = 12, padx = 4)
+personal_label.grid(row = 2, column = 3, sticky="nsew")
+#Levelup Selection header
+levelup_label = Label(root, text = "Custom Levelup", height = 2, width = 12, padx = 4)
+levelup_label.grid(row = 2, column = 4, sticky="nsew")
+#Evolution Selection header
+evolution_label = Label(root, text = "Custom Evolution", height = 2, width = 12, padx = 4)
+evolution_label.grid(row = 2, column = 5, sticky="nsew")
 
-base_species_combobox = ttk.Combobox(root, value = [], width = 18)
-base_species_combobox.grid(row = 3, column = 0, sticky="new")
 
-base_species_combobox.bind('<KeyRelease>', base_species_combobox_search)
-
-
-#Model Selection
-
+#checkbuttons for defaults
 model_checkbutton = Checkbutton(root, text = 'Same as Species', variable = model_bool, onvalue = True, offvalue = False)
 model_checkbutton.grid(row = 1, column = 2, sticky="nsew")
 model_checkbutton.select()
-
-model_label = Label(root, text = "Custom Model", height = 2, width = 12, padx = 4)
-model_label.grid(row = 2, column = 2, sticky="nsew")
-
-model_combobox = ttk.Combobox(root, value = [], width = 18)
-model_combobox.grid(row = 3, column = 2, sticky="new")
-
-model_combobox.bind('<KeyRelease>', model_combobox_search)
-
-#Personal Selection
 
 personal_checkbutton = Checkbutton(root, text = 'Same as Species', variable = personal_bool, onvalue = True, offvalue = False)
 personal_checkbutton.grid(row = 1, column = 3, sticky="nsew")
 personal_checkbutton.select()
 
-personal_label = Label(root, text = "Custom Personal", height = 2, width = 12, padx = 4)
-personal_label.grid(row = 2, column = 3, sticky="nsew")
-
-
-personal_combobox = ttk.Combobox(root, value = [], width = 18)
-personal_combobox.grid(row = 3, column = 3, sticky="new")
-
-personal_combobox.bind('<KeyRelease>', personal_combobox_search)
-
-#Levelup Selection
-
 levelup_checkbutton = Checkbutton(root, text = 'Same as Species', variable = levelup_bool, onvalue = True, offvalue = False)
 levelup_checkbutton.grid(row = 1, column = 4, sticky="nsew")
 levelup_checkbutton.select()
 
-levelup_label = Label(root, text = "Custom Levelup", height = 2, width = 12, padx = 4)
-levelup_label.grid(row = 2, column = 4, sticky="nsew")
-
-levelup_combobox = ttk.Combobox(root, value = [], width = 18)
-levelup_combobox.grid(row = 3, column = 4, sticky="new")
-
-levelup_combobox.bind('<KeyRelease>', levelup_combobox_search)
-
-#Evolution Selection
-
 evolution_checkbutton = Checkbutton(root, text = 'Same as Species', variable = evolution_bool, onvalue = True, offvalue = False)
 evolution_checkbutton.grid(row = 1, column = 5, sticky="nsew")
 evolution_checkbutton.select()
+#base species combobox
+base_species_combobox = ttk.Combobox(root, value = [], width = 18)
+base_species_combobox.grid(row = 3, column = 0, sticky="new")
 
-evolution_label = Label(root, text = "Custom Evolution", height = 2, width = 12, padx = 4)
-evolution_label.grid(row = 2, column = 5, sticky="nsew")
-
-
-evolution_combobox = ttk.Combobox(root, width = 18)
-evolution_combobox.grid(row = 3, column = 5, sticky="new")
-
-evolution_combobox.bind('<KeyRelease>', evolution_combobox_search)
-
-#CSV file path Selection
-
-load_pokelist_csv_button = Button(root, text = '(Re)Load CSV', command = lambda: [user_prompt_load_CSV(poke_edit_data, 'Pokemon Names and Files'), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
-load_pokelist_csv_button.grid(row = 0, column = 6, sticky="ew")
-
-save_pokelist_csv_button = Button(root, text = 'Create/Save CSV', command = lambda: [user_prompt_write_CSV(poke_edit_data, 'Pokemon Names and Files'), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
-save_pokelist_csv_button.grid(row = 1, column = 6, sticky="ew")
-
-#create_pokelist_csv_button = Button(root, text = 'Create/Reset CSV', command = lambda: [create_refresh_CSV(poke_edit_data,games_temp.get()), update_all_listboxes(poke_edit_data)], height = 2, width = 18, pady = 5, padx = 7)
-#create_pokelist_csv_button.grid(row = 4, column = 6, sticky="ew")
-
+base_species_combobox.bind('<KeyRelease>', base_species_combobox_search)
 
 #Number of New Formes
 number_formes_label = Label(root, text = "# Formes To Add", height = 2, width = 12, padx = 4)
@@ -319,6 +290,35 @@ number_formes_label.grid(row = 2, column = 1, sticky="nsew")
 
 number_formes_entry = Entry(root, width = 12)
 number_formes_entry.grid(row = 3, column = 1, sticky="new")
+
+#model combobox
+model_combobox = ttk.Combobox(root, value = [], width = 18)
+model_combobox.grid(row = 3, column = 2, sticky="new")
+
+model_combobox.bind('<KeyRelease>', model_combobox_search)
+
+#personal combobox
+personal_combobox = ttk.Combobox(root, value = [], width = 18)
+personal_combobox.grid(row = 3, column = 3, sticky="new")
+
+personal_combobox.bind('<KeyRelease>', personal_combobox_search)
+
+#levelup combobox
+levelup_combobox = ttk.Combobox(root, value = [], width = 18)
+levelup_combobox.grid(row = 3, column = 4, sticky="new")
+
+levelup_combobox.bind('<KeyRelease>', levelup_combobox_search)
+
+
+#evolution combobox
+evolution_combobox = ttk.Combobox(root, width = 18)
+evolution_combobox.grid(row = 3, column = 5, sticky="new")
+
+evolution_combobox.bind('<KeyRelease>', evolution_combobox_search)
+
+
+
+
 
 #Run Insertion
 execute_button = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)

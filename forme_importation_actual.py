@@ -1,7 +1,7 @@
 from tkinter.filedialog import asksaveasfile
 from my_constants import *
 from user_data_handling import *
-
+from file_handling import *
 
 
 def save_and_refresh_GARCs(poke_edit_data):
@@ -145,8 +145,9 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     
     print('\n\nUpdating existing files for species ' + str(base_form_index))
 
-            
+    #pre-insertion number of formes
     old_forme_count = poke_edit_data.personal[base_form_index][0x20]
+    #pre-insertion pointer to first alt forme
     old_forme_pointer = from_little_bytes_int(poke_edit_data.personal[base_form_index][0x1C:0x1E])
 
     #in this case, forme count is not going to change, since we are initializing unique data for existing cosmetic formes
@@ -170,8 +171,11 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
     
     print("Copying new game data")
     #now initialize the newly added formes
+    
+    cur_forme_pointer = 0
+    new_forme_pointer = 0
 
-    #remember, .insert(x, y) places y at position x, e.g. .insert(150, y) places y at Mewtwo's position, and Mewtwo is now at 151
+    #remember, .insert(x, y) places y at position x, at moves the thing there to later spot e.g. .insert(150, y) places y at Mewtwo's position, and Mewtwo is now at 151
     #if this Pokemon has no formes, find the first entry of the next species with alt formes, and insert there
     if(old_forme_count == 1):
         for index, pokemon in enumerate(poke_edit_data.personal):
@@ -182,34 +186,44 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
             if(index > base_form_index and cur_forme_pointer != 0):
                 new_forme_pointer = cur_forme_pointer
                 break
-        #otherwise, we are appending to the very end
-        new_forme_pointer = len(poke_edit_data.personal)
+            else:
+                #otherwise, we are appending to the very end
+                new_forme_pointer = len(poke_edit_data.personal)
     else:
        #if more than just base forme, the last alt forme is at forme_pointer + (forme_count - 2), 1 taken out for base forme, and then the first alt forme is forme_pointer + 0. We need to insert from next thing, forme_pointer + 1, so just -1
         new_forme_pointer = old_forme_pointer + len(existing_formes_array) - 1
     
+    #print('old forme pointer, cur_forme_pointer, new forme pointer', old_forme_pointer, cur_forme_pointer, new_forme_pointer)
     
     #repoint everyone after the inserted formes, just add new_forme_count to current pointer. 
     for index, pokemon in enumerate(poke_edit_data.personal):
         cur_forme_pointer = from_little_bytes_int(pokemon[0x1C:0x1E])
-
-        #if current forme pointer is the same as the existing one for this species, we are not changing it, only incrementing the total number of formes
-        if(cur_forme_pointer == old_forme_pointer):
-            poke_edit_data.personal[base_form_index][0x20] = total_formes
-        #otherwise, if the forme pointer is pushed forwards, increment it
-        elif(cur_forme_pointer >= new_forme_pointer):
+        #otherwise, if the current personal file's pointer is pointing to or after the newly inserted stuff, increment it by the number of new formes
+        if(cur_forme_pointer >= new_forme_pointer):
             pokemon[0x1C:0x1E] = from_int_little_bytes(cur_forme_pointer + new_forme_count, 0x2)
 
     for x in range(new_forme_count):
         poke_edit_data.personal.insert(new_forme_pointer + x, poke_edit_data.personal[personal_source_index])
-        #if we are not using the base forme, we need to correct the pointer and forme count
-        if(personal_source_index != base_form_index):
-            poke_edit_data.personal[new_forme_pointer + x][0x1C:0x1E] = from_int_little_bytes(new_forme_pointer, 0x2)
-            poke_edit_data.personal[new_forme_pointer + x][0x20] = total_formes
         poke_edit_data.levelup.insert(new_forme_pointer + x, poke_edit_data.levelup[levelup_source_index])
         poke_edit_data.evolution.insert(new_forme_pointer + x, poke_edit_data.evolution[evolution_source_index])
-    start_location = new_forme_pointer
+        existing_formes_array.append(new_forme_pointer + x)
 
+    #finally, update all the existing files for this pokemon with total forme count and pointer
+    #existing_formes_array now has all entries for this species
+
+    #first determine what the pointer is - if there were already formes, keep using the old pointer
+    use_pointer = 0
+    if(old_forme_pointer != 0):
+        use_pointer = old_forme_pointer
+    else:
+        use_pointer = new_forme_pointer
+
+    for index in existing_formes_array:
+        poke_edit_data.personal[index][0x20] = total_formes
+        poke_edit_data.personal[index][0x1C:0x1E] = from_int_little_bytes(use_pointer, 0x2)
+
+    #needed for the CSV update and stuff
+    start_location = new_forme_pointer
 
     if(skip_model_insertion):
         poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, True)

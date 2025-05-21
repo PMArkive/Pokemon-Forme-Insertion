@@ -9,7 +9,7 @@ def pre_check(poke_edit_data):
 
     #get index of base species
     try:
-        base_form_index = int(poke_edit_data.base_species_list.index(base_species_combobox.get().title()))
+        base_form_index = int(poke_edit_data.base_species_list.index(base_species_combobox.get().title())) + 1
     except:
         print('Error at base species,',base_species_combobox.get(),'not found.')
         return
@@ -81,23 +81,27 @@ def pre_check(poke_edit_data):
     else:
         model_source_index_row = find_rows_with_column_matching(poke_edit_data.master_list_csv, 4, model_source_index)[0]
 
-    if(int(poke_edit_data.master_list_csv[model_source_index_row][5]) == 0 and int(poke_edit_data.master_list_csv[model_source_index_row][6]) == 0):
-        print('Bitflag check clear\n')
-    else:
-        print('\nIf bitflags of the selected model are not 0, it is possible that using this source will cause glitches.\nIt is STRONGLY recommended that you confirm you have backups before you proceed.\nBitflag is ', poke_edit_data.master_list_csv[model_source_index_row][5], poke_edit_data.master_list_csv[model_source_index_row][6])
-        while True:
-            continue_bool = input('\nDo you wish to proceed? Y/N\n')
-            if(continue_bool in {'y', 'Y'}):
-                break
-            elif(continue_bool in {'n', 'N'}):
-                return(poke_edit_data)
-            print('Invalid entry')
+    try:
+        if(int(poke_edit_data.master_list_csv[model_source_index_row][5]) == 0 and int(poke_edit_data.master_list_csv[model_source_index_row][6]) == 0):
+            print('Bitflag check clear\n')
+        else:
+            print('\nIf bitflags of the selected model are not 0, it is possible that using this source will cause glitches.\nIt is STRONGLY recommended that you confirm you have backups before you proceed.\nBitflag is ', poke_edit_data.master_list_csv[model_source_index_row][5], poke_edit_data.master_list_csv[model_source_index_row][6])
+            while True:
+                continue_bool = input('\nDo you wish to proceed? Y/N\n')
+                if(continue_bool in {'y', 'Y'}):
+                    break
+                elif(continue_bool in {'n', 'N'}):
+                    return(poke_edit_data)
+                print('Invalid entry')
+    except Exception as e:
+        print('Error when trying to check the source model bitflags, error:', e)
+
 
 
 
     #print(model_source_index)
     poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion, update_forme_count)
-    
+
     return(poke_edit_data)
 
 root = Tk()

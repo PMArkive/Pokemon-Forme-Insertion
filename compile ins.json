@@ -26,6 +26,10 @@
    "value": false
   },
   {
+   "optionDest": "optimize",
+   "value": "2"
+  },
+  {
    "optionDest": "strip",
    "value": false
   },

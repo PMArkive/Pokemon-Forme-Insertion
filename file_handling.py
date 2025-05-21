@@ -120,8 +120,8 @@ def update_model_list(poke_edit_data):
     else:
         poke_edit_data.run_model_later = False
         print('Initializing default Model list')
-    model_temp_list = []
 
+    model_temp_list = []
             
     #for base formes plus egg at poke_edit_data.max_species_index
     for index in range(poke_edit_data.max_species_index):
@@ -129,7 +129,11 @@ def update_model_list(poke_edit_data):
         number_of_models = int(poke_edit_data.model_header[(index)*4 + 2])
               
         #grab the name
-        temp_name = poke_edit_data.base_species_list[index + 1]
+
+        if(index + 1 == poke_edit_data.max_species_index):
+            temp_name = poke_edit_data.base_species_list[0]
+        else:
+            temp_name = poke_edit_data.base_species_list[index+1]
                 
         #name each model as <Pokemon species> <number>, the base forme is named <Pokemon> 0 so that (in at least most cases) the model-number lines up with the forme-number (where there are multiple)
         for distinct_models in range(0, number_of_models):

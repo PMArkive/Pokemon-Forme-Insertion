@@ -3,7 +3,6 @@ from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 from utilities import *
 from file_handling import *
 from functools import reduce
-from forme_importation_actual import *
 
 def binary_file_to_array(file_path):
 
@@ -510,9 +509,13 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
             loaded_csv_file = list(reader_head)
         
             #check to see if older version from before saving the model header bytes and removes the header row
-            if(loaded_csv_file.pop(0)[14] == 'Model Bitflag 1'):
-                has_bitflag = True
-            else:
+            try:
+                if(loaded_csv_file.pop(0)[14] == 'Model Bitflag 1'):
+                    has_bitflag = True
+                else:
+                    has_bitflag = False
+            except Exception as e:
+                print('Error when trying to check for model bitflag in CSV, ', e)
                 has_bitflag = False
             
         
@@ -543,14 +546,10 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                     temp_row[4] = data_rows[2]
                 
                 #load the two bytes from the end of the model table thing
-                if(has_bitflag and not(poke_edit_data.modelless_exists and temp_row[3] == 975 and poke_edit_data.game == 'USUM')):
-                    temp_row[5] = data_rows[14]
-                    temp_row[6] = data_rows[15]
-                else:
-                    temp_row[5] = 0
-                    temp_row[6] = 0
-                    
-                
+                if(has_bitflag):
+                    if(has_bitflag and not(poke_edit_data.modelless_exists and temp_row[3] == 975 and poke_edit_data.game == 'USUM')):
+                        temp_row[5] = data_rows[14]
+                        temp_row[6] = data_rows[15]
 
                 temp_loaded_csv.append(temp_row)
                 
@@ -599,41 +598,42 @@ def load_names_from_CSV(poke_edit_data, just_wrote = False):
                         break
                     loaded_csv_row += 1
         
-        if(not(just_wrote)):
-                species_check = len(temp_base_species_list) - len(poke_edit_data.base_species_list)
-                forme_check = len(temp_master_formes_list) - len(poke_edit_data.master_formes_list)
-                model_check = len(temp_model_source_list) - len(poke_edit_data.model_source_list)
+        if(just_wrote):
+            
+            species_check = len(temp_base_species_list) - len(poke_edit_data.base_species_list)
+            forme_check = len(temp_master_formes_list) - len(poke_edit_data.master_formes_list)
+            model_check = len(temp_model_source_list) - len(poke_edit_data.model_source_list)
 
-                if(species_check < 0):
-                    print('The loaded CSV has fewer Pokemon base species than your game files. Something is very probably wrong unless you have successfully added new species to the game (in which case please submit a bug report so I can update). The Pokemon base species entries read from the CSV have NOT been loaded.')
-                    return(poke_edit_data)
-                elif(species_check > 0):
-                    print('The loaded CSV has more Pokemon base species than your game files. Something is very probably wrong. Please recheck your game files, the csv itself, and your settings. The Pokemon base species entries read from the CSV have NOT been loaded.')
-                    return(poke_edit_data)
-                elif(species_check == 0):
-                    print('Loading Pokemon Species List from CSV')
-                    poke_edit_data.base_species_list = temp_base_species_list.copy()
+            if(species_check < 0):
+                print('The loaded CSV has fewer Pokemon base species than your game files. Something is very probably wrong unless you have successfully added new species to the game (in which case please submit a bug report so I can update). The Pokemon base species entries read from the CSV have NOT been loaded.')
+                return(poke_edit_data)
+            elif(species_check > 0):
+                print('The loaded CSV has more Pokemon base species than your game files. Something is very probably wrong. Please recheck your game files, the csv itself, and your settings. The Pokemon base species entries read from the CSV have NOT been loaded.')
+                return(poke_edit_data)
+            elif(species_check == 0):
+                print('Loading Pokemon Species List from CSV')
+                poke_edit_data.base_species_list = temp_base_species_list.copy()
             
-                if(forme_check < 0):
-                    print('The loaded CSV might have fewer Forme entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will rebuild CSV file in memory from game files, if this is wrong, please exit without saving')
-                    poke_edit_data = rebuild_csv(poke_edit_data)
-                elif(forme_check > 0):
-                    print('The loaded CSV has more total Forme entries than your game files. Something is wrong. Please double-check your file selections and settings. The Forme entries read from the CSV have NOT been loaded.')
-                    return(poke_edit_data)
+            if(forme_check < 0):
+                print('The loaded CSV might have fewer Forme entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will rebuild CSV file in memory from game files, if this is wrong, please exit without saving')
+                poke_edit_data = rebuild_csv(poke_edit_data)
+            elif(forme_check > 0):
+                print('The loaded CSV has more total Forme entries than your game files. Something is wrong. Please double-check your file selections and settings. The Forme entries read from the CSV have NOT been loaded.')
+                return(poke_edit_data)
                     
-                if(forme_check == 0):
-                    print('Loading Formes List from CSV')
-                    poke_edit_data.master_formes_list = temp_master_formes_list.copy()
+            if(forme_check == 0):
+                print('Loading Formes List from CSV')
+                poke_edit_data.master_formes_list = temp_master_formes_list.copy()
             
-                if(model_check < 0):
-                    print('The loaded CSV might have fewer total Model entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will attempt to update.')
-                    poke_edit_data = rebuild_csv(poke_edit_data)
-                    poke_edit_data = load_names_from_CSV(poke_edit_data, True)
-                elif(model_check > 0):
-                    print('The loaded CSV has more total Model entries than your game files. Something is wrong. Please double-check your file selections and settings. The Model entries read from the CSV have NOT been loaded.')
-                if(model_check == 0):
-                    print('Loading Model List from CSV')
-                    poke_edit_data.model_source_list = temp_model_source_list.copy()
+            if(model_check < 0):
+                print('The loaded CSV might have fewer total Model entries than your game files. Unless you have not previously selected or initialized a csv for your game, or for whatever reason refreshed it to default, something might be wrong. Please double-check your file selections and settings. Will attempt to update.')
+                poke_edit_data = rebuild_csv(poke_edit_data)
+                poke_edit_data = load_names_from_CSV(poke_edit_data, True)
+            elif(model_check > 0):
+                print('The loaded CSV has more total Model entries than your game files. Something is wrong. Please double-check your file selections and settings. The Model entries read from the CSV have NOT been loaded.')
+            if(model_check == 0):
+                print('Loading Model List from CSV')
+                poke_edit_data.model_source_list = temp_model_source_list.copy()
         else:
             poke_edit_data.base_species_list = temp_base_species_list.copy()
             poke_edit_data.master_formes_list = temp_master_formes_list.copy()
@@ -830,7 +830,7 @@ def load_game_cfg(poke_edit_data):
     poke_edit_data = load_names_from_CSV(poke_edit_data)
         
     print('Sorted: ', poke_edit_data.sorted, '\n')
-    print("Number of Species:", len(poke_edit_data.base_species_list) - 1, "(not including the Egg)")
+    print("Number of Species:", len(poke_edit_data.base_species_list), "(not including the Egg)")
     print("Number of Personal Entries:", len(poke_edit_data.master_formes_list) - 1, "(not including the Egg)")
     print("Number of Model Entries:", len(poke_edit_data.model_source_list))
     '''except:

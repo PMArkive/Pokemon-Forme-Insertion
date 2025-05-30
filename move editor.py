@@ -2,7 +2,6 @@ from forme_importation_actual import *
 from utilities import *
 
 
-
 def export_levelup(move_edit_data, move_list, pokemon_list):
 
     #load levelup GARC
@@ -27,7 +26,15 @@ def export_levelup(move_edit_data, move_list, pokemon_list):
                 if(level == 0xFF and move_index == 0xFFFF):
                     pass
                 else:
-                    writer_head.writerow ([index, pokemon_list[index], level, move_list[move_index]])
+                    try:
+                        writer_head.writerow ([index, pokemon_list[index], level, move_list[move_index]])
+                    except Exception as e:
+                        print(e)
+                        if(index >= len(pokemon_list)):
+                            print('You might be using the wrong generation, or have added additional Pokemon/formes. In the latter case, update the appropriate CSV.')
+                        if(move_index >= len(move_list)):
+                            print('You might have added additional moves, in that case, please add them in the appropriate place in move_list.csv')
+
             #write blank line after every Pokemon for easy reading
             writer_head.writerow (['', '', '', ''])
             

@@ -33,17 +33,19 @@ def export_levelup(move_edit_data, move_list, pokemon_list):
             
 def import_levelup(move_edit_data, move_list, pokemon_list):
 
-    #initialize with Pokemon 0's empty file, just has terminator
-    output_array = [[0xFF, 0xFF, 0xFF, 0xFF]]
+    output_array = []
 
     temp_array = []
 
     #choose edited .csv
     save_path = askopenfilename(title='Choose edited table of Level-Up Moves', defaultextension='.csv',filetypes= [('CSV','.csv')])
 
+    #load levelup GARC
+    move_edit_data = choose_GARC(move_edit_data, 'Levelup', move_edit_data.game)
+
     #get data from csv individual binary files
     with open(save_path, 'r', newline = '', encoding='utf-8-sig') as csvfile:
-        reader_head = csv.writer(csvfile, dialect='excel', delimiter=',')
+        reader_head = csv.reader(csvfile, dialect='excel', delimiter=',')
 
         temp_array = list(reader_head)
 
@@ -56,13 +58,17 @@ def import_levelup(move_edit_data, move_list, pokemon_list):
 
     #build the new set of binary files
 
-    last_personal = 1
+    last_personal = 0
     temp_file = []
-    for line in temp_array:
+    for line_number, line in enumerate(temp_array):
         #no file for header or blank space
         if(line[0] in {'','Personal Index'}):
             pass
         else:
+            #if went down, something is very wrong, abort
+            if(int(line[0]) < int(last_personal)):
+                print('Serious error at line', line_number + 1, 'index numbers out of order, please check the line, you might need to sort the .csv file by index number.')
+
             #if not-equal, starting next file
             if(line[0] != last_personal):
                 #append terminator to previous file
@@ -75,12 +81,22 @@ def import_levelup(move_edit_data, move_list, pokemon_list):
                 last_personal = line[0]
 
             #get move index
-            temp_index = move_list.index(line[3].lower())
+            try:
+                temp_index = move_list.index(line[3].lower())
+            except Exception as e:
+                print('Error at line', line_number + 1, 'Python error:', e)
+                try:
+                    print('Move entered as', line[3], 'not found. Please check spelling')
+                except Exception as e:
+                    print('Error 2:', e)
+                    print('Unable to access the entered move name, something is wrong.')
 
             #move index, low byte then high
             temp_file.append(temp_index%0x100)
             temp_file.append(temp_index >> 8)
             #level
+            if(int(line[2]) < 0 or int(line[2]) > 100):
+                print('Warning, level at line', line_number,'is', line[2],'.\n')
             temp_file.append(int(line[2]))
             #unused
             temp_file.append(0x00)
@@ -89,8 +105,10 @@ def import_levelup(move_edit_data, move_list, pokemon_list):
     output_array.append(temp_file)
 
     move_edit_data.levelup = output_array
+         
+   
 
-    save_GARC(move_edit_data, levelup):
+    save_GARC(move_edit_data, 'levelup')
 
     return(move_edit_data)
 

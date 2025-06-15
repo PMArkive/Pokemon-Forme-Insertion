@@ -104,9 +104,21 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
             
 
         #modelless_skip_count = 0
-        #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
+        #third we sweep through the entire array and update the model and personal index numbers, starting from the first newly inserted row
         for offset in range(1, len(poke_edit_data.master_list_csv)):
+            
+            #entry X has model index X, starting from 1. Last model is the Egg
             poke_edit_data.master_list_csv[offset][4] = offset
+            
+            try:
+                #old personal index is at least the place we started inserting from and it's from a higher base index number (e.g. inserted new squirtle forme, all else unchanged first pass will be Mega Blastoise)
+                if(poke_edit_data.master_list_csv[offset][3] >= start_location and poke_edit_data.master_list_csv[offset][2] > base_form_index):
+                    poke_edit_data.master_list_csv[offset][3] += new_forme_count
+            #is model-only
+            except:
+                pass
+            
+
         
         return(poke_edit_data)
 

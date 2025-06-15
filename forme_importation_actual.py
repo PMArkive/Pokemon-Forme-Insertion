@@ -366,7 +366,7 @@ def add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, mode
         #update csv with new model indices & also the model type table
         poke_edit_data = update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, start_location, False, model_source_flags)
 
-    print('Writing updated GARCs' + '\n')
+    print('Writing updated GARCs (Updated the Model GARC will take a few minutes)' + '\n')
 
     save_and_refresh_GARCs(poke_edit_data)
 

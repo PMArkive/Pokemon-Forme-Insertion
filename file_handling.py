@@ -106,7 +106,7 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
         #modelless_skip_count = 0
         #third we sweep through the entire array and update the model numbers, starting from the first newly inserted row
         for offset in range(1, len(poke_edit_data.master_list_csv)):
-            poke_edit_data.master_list_csv[offset][4] = offset - 1
+            poke_edit_data.master_list_csv[offset][4] = offset
         
         return(poke_edit_data)
 

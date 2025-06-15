@@ -174,7 +174,7 @@ def main():
 
         #choose extract or rebuild
         while True:
-            temp = input('Extract or rebuild Level-Up GARC, or quite? (e/r/q)\n').lower()
+            temp = input('Extract or rebuild Level-Up GARC, or quit? (e/r/q)\n').lower()
             if(temp in {'e', 'r', 'q'}):
                 action_choice = temp
                 break

@@ -96,9 +96,6 @@ def pre_check(poke_edit_data):
     except Exception as e:
         print('Error when trying to check the source model bitflags, error:', e)
 
-
-
-
     #print(model_source_index)
     poke_edit_data = add_new_forme_execute(poke_edit_data, base_form_index, new_forme_count, model_source_index, personal_source_index, levelup_source_index , evolution_source_index, model_bool.get(), skip_model_insertion, update_forme_count)
 
@@ -326,7 +323,7 @@ evolution_combobox.bind('<KeyRelease>', evolution_combobox_search)
 sort_button = Button(root, text = 'Sort Forme List', command = lambda: [resort_file_structure(poke_edit_data), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
 sort_button.grid(row = 2, column = 6, sticky="nsew")
 
-#Run Insertion
+#Run Insertion 
 execute_button = Button(root, text = 'Insert Forme(s)', command = lambda: [pre_check(poke_edit_data), update_non_model_lists(poke_edit_data), update_model_list_for_box(poke_edit_data)], height = 2, width = 12, pady = 5, padx = 7)
 execute_button.grid(row = 3, column = 6, sticky="nsew")
 

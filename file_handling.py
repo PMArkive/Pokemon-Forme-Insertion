@@ -89,7 +89,6 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
 
         for offset in range(new_forme_count):
             poke_edit_data.master_list_csv[first_missing_personal_line + offset][3] = first_free_index + offset
-        return(poke_edit_data)
     else:
         #index we start inserting the new rows from
         csv_insertion_point = max(working_indices) + 1
@@ -118,9 +117,18 @@ def update_csv_after_changes(poke_edit_data, base_form_index, new_forme_count, s
             except:
                 pass
             
+    #now redo the forme index numbers
+    absolute_number = poke_edit_data.max_species_index + 1
+    for entry in poke_edit_data.master_list_csv:
+        try:
+            if(entry[3] > poke_edit_data.max_species_index):
+                entry[3] = absolute_number
+                absolute_number += 1
+        except:
+            pass
 
-        
-        return(poke_edit_data)
+
+    return(poke_edit_data)
 
 def update_model_list(poke_edit_data):
     

@@ -223,12 +223,19 @@ def update_species_list(poke_edit_data, overwrite_from_default = False):
     for index, file in enumerate(poke_edit_data.personal):
         #since we're filling up the poke_edit_data.master_formes_list by iterating through the base formes, we can stop when we finish the last base Pokemon
         #poke_edit_data.max_species_index is here the first alt forme because off-by-1, so stop here
-        if(index == poke_edit_data.max_species_index + 1):
+
+        #skip the first empty one
+
+        if(index == 0):
+            pass
+        elif(index == poke_edit_data.max_species_index + 1):
             break
         #pull # of formes
         forme_count = file[0x20]
-        forme_pointer = from_little_bytes_int(file[0x1C:0x1E])
-        
+        try:
+            forme_pointer = from_little_bytes_int(file[0x1C:0x1E])
+        except Exception as e:
+            print('Possible error detected', e)
         #if more than 1 AND forme pointer not 0, need to update those names in the array
         if(forme_count > 1 and forme_pointer != 0):
             #this is the internal index number of the first alt forme, less 1 because we're shifted over one
